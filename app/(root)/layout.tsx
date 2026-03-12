@@ -1,30 +1,8 @@
-// Corrected RootLayout component
 import { ReactNode } from 'react';
-import Image from "next/image";
-import Link from "next/link";
-import {isAuthenticated} from "@/lib/actions/auth.action";
-import {redirect} from "next/navigation";// Link is needed for navigation
 
 const RootLayout = async ({ children }: { children: ReactNode }) => {
-   // const isUserAuthenticated = await isAuthenticated();
-
-   // if(!isUserAuthenticated) redirect('/sign-in');
-
     return (
-        <div className="root-layout">
-            <nav>
-                <Link href="/" className="flex items-center gap-2">
-                    <Image
-                        src="/logo.svg"
-                        alt="Logo"
-                        width={38}
-                        height={32} // Corrected height prop
-                    />
-                    <h2 className="text-primary-100">PrepWise</h2> {/* Added missing content */}
-                </Link>
-            </nav>
-            {children}
-        </div>
+        <div>{children}</div>
     );
 };
 

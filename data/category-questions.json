@@ -1,0 +1,916 @@
+{
+    "categories": {
+        "frontend": [
+            {
+                "id": "fe1",
+                "title": "What is the Virtual DOM and how does React's reconciliation algorithm work?",
+                "difficulty": "Medium",
+                "tags": [
+                    "React",
+                    "Performance"
+                ],
+                "hint": "Explain diffing algorithm, fiber architecture, and why it's faster than direct DOM manipulation."
+            },
+            {
+                "id": "fe2",
+                "title": "Explain CSS specificity and how the cascade algorithm resolves conflicts.",
+                "difficulty": "Easy",
+                "tags": [
+                    "CSS",
+                    "Browser"
+                ],
+                "hint": "Inline > ID > Class > Element. Mention !important and its risks."
+            },
+            {
+                "id": "fe3",
+                "title": "What is the difference between useCallback and useMemo? When do you actually need them?",
+                "difficulty": "Medium",
+                "tags": [
+                    "React",
+                    "Hooks"
+                ],
+                "hint": "useMemo caches values, useCallback caches functions. Only use when computation is expensive or referential equality matters."
+            },
+            {
+                "id": "fe4",
+                "title": "How does JavaScript event loop work? Explain microtasks vs macrotasks.",
+                "difficulty": "Medium",
+                "tags": [
+                    "JavaScript",
+                    "Async"
+                ],
+                "hint": "Call stack → Microtask queue (Promises) → Macrotask queue (setTimeout). Microtasks drain completely before macrotasks."
+            },
+            {
+                "id": "fe5",
+                "title": "What are Web Workers and when would you use them?",
+                "difficulty": "Medium",
+                "tags": [
+                    "JavaScript",
+                    "Performance"
+                ],
+                "hint": "Background threads for CPU-intensive tasks. Cannot access DOM. Use for large data processing."
+            },
+            {
+                "id": "fe6",
+                "title": "Explain the difference between server-side rendering, static site generation, and CSR.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Next.js",
+                    "Architecture"
+                ],
+                "hint": "SSR: per-request HTML. SSG: build-time HTML. CSR: JS renders in browser. Each has different TTFB, SEO, and caching tradeoffs."
+            },
+            {
+                "id": "fe7",
+                "title": "How would you optimize a React app that renders a list of 10,000 items?",
+                "difficulty": "Hard",
+                "tags": [
+                    "React",
+                    "Performance"
+                ],
+                "hint": "Virtual scrolling (react-window), pagination, memoization, windowing. Never render all items at once."
+            },
+            {
+                "id": "fe8",
+                "title": "What is CORS and how do you handle it in a frontend application?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Browser",
+                    "Security"
+                ],
+                "hint": "Same-origin policy restriction. Handle via server headers, proxy, or JSONP for legacy."
+            },
+            {
+                "id": "fe9",
+                "title": "Explain CSS Grid vs Flexbox — when do you use each?",
+                "difficulty": "Easy",
+                "tags": [
+                    "CSS",
+                    "Layout"
+                ],
+                "hint": "Flexbox: 1D layout (row or column). Grid: 2D layout. Use Grid for page layouts, Flexbox for components."
+            },
+            {
+                "id": "fe10",
+                "title": "What is code splitting and how do you implement it in Next.js?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Next.js",
+                    "Performance"
+                ],
+                "hint": "dynamic() imports, React.lazy + Suspense. Split by route automatically in Next.js, manually for heavy components."
+            },
+            {
+                "id": "fe11",
+                "title": "How do you handle authentication state in a Next.js App Router application?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Next.js",
+                    "Auth"
+                ],
+                "hint": "Server-side session cookies, middleware for route protection, client-side state sync with cookies."
+            },
+            {
+                "id": "fe12",
+                "title": "What is TypeScript's structural typing? How is it different from nominal typing?",
+                "difficulty": "Medium",
+                "tags": [
+                    "TypeScript"
+                ],
+                "hint": "TypeScript checks shape, not name. Two types are compatible if they have the same structure, regardless of their declared name."
+            },
+            {
+                "id": "fe13",
+                "title": "Explain how CSS `position: sticky` works and common pitfalls.",
+                "difficulty": "Easy",
+                "tags": [
+                    "CSS"
+                ],
+                "hint": "Positioned relative until scroll threshold, then fixed. Pitfall: parent overflow hidden breaks it."
+            },
+            {
+                "id": "fe14",
+                "title": "What is a closure in JavaScript? Give a real-world use case.",
+                "difficulty": "Easy",
+                "tags": [
+                    "JavaScript"
+                ],
+                "hint": "A function that remembers its outer scope. Used in event handlers, memoization, module pattern, factory functions."
+            },
+            {
+                "id": "fe15",
+                "title": "How does lazy loading improve performance? How do you implement it for images?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Performance",
+                    "Browser"
+                ],
+                "hint": "loading='lazy' attribute, Intersection Observer API, Next.js Image component handles this automatically."
+            }
+        ],
+        "backend": [
+            {
+                "id": "be1",
+                "title": "How would you design a RESTful API for a social media platform? What endpoints would you create?",
+                "difficulty": "Medium",
+                "tags": [
+                    "API",
+                    "REST"
+                ],
+                "hint": "Resource-based URLs, proper HTTP methods, versioning, pagination, error codes."
+            },
+            {
+                "id": "be2",
+                "title": "Explain database indexing. When should you NOT use an index?",
+                "difficulty": "Medium",
+                "tags": [
+                    "SQL",
+                    "Performance"
+                ],
+                "hint": "Speeds up reads, slows down writes. Avoid on small tables, frequently updated columns, low-cardinality columns."
+            },
+            {
+                "id": "be3",
+                "title": "What is the N+1 query problem and how do you solve it?",
+                "difficulty": "Medium",
+                "tags": [
+                    "SQL",
+                    "ORM"
+                ],
+                "hint": "1 query to fetch list + N queries for each item's relations. Solve with JOIN, eager loading, DataLoader."
+            },
+            {
+                "id": "be4",
+                "title": "Explain ACID properties in databases. When would you sacrifice some for performance?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Database"
+                ],
+                "hint": "Atomicity, Consistency, Isolation, Durability. NoSQL often trades ACID for availability/performance (BASE model)."
+            },
+            {
+                "id": "be5",
+                "title": "How do JWTs work? What are their security implications?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Auth",
+                    "Security"
+                ],
+                "hint": "Header.Payload.Signature. Stateless but cannot be invalidated. Use short expiry + refresh tokens. Never store sensitive data in payload."
+            },
+            {
+                "id": "be6",
+                "title": "What is database sharding? When would you implement it?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Database",
+                    "Scale"
+                ],
+                "hint": "Horizontal partitioning across multiple servers. Use when single-node can't handle load. Challenges: cross-shard queries, rebalancing."
+            },
+            {
+                "id": "be7",
+                "title": "Explain the difference between SQL and NoSQL databases. When do you choose each?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Database"
+                ],
+                "hint": "SQL: structured, ACID, relations. NoSQL: flexible schema, horizontal scale, varied data models. Choose based on data structure and scale needs."
+            },
+            {
+                "id": "be8",
+                "title": "How does connection pooling work and why is it important?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Database",
+                    "Performance"
+                ],
+                "hint": "Reuses DB connections instead of creating new ones. Avoids overhead. Set appropriate pool size based on DB and server capacity."
+            },
+            {
+                "id": "be9",
+                "title": "What is GraphQL? When is it better than REST?",
+                "difficulty": "Medium",
+                "tags": [
+                    "GraphQL",
+                    "API"
+                ],
+                "hint": "Client specifies exact data needed. Solves over/under-fetching. Better for complex, nested data. REST better for simple CRUD."
+            },
+            {
+                "id": "be10",
+                "title": "How would you implement rate limiting for an API?",
+                "difficulty": "Medium",
+                "tags": [
+                    "API",
+                    "Security"
+                ],
+                "hint": "Token bucket or sliding window algorithm. Use Redis for distributed rate limiting. Return 429 with Retry-After header."
+            },
+            {
+                "id": "be11",
+                "title": "Explain event-driven architecture. What are its trade-offs?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Architecture"
+                ],
+                "hint": "Services communicate via events (Kafka, RabbitMQ). Decoupled, scalable, but harder to debug and trace."
+            },
+            {
+                "id": "be12",
+                "title": "How do you handle database migrations in production without downtime?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Database",
+                    "DevOps"
+                ],
+                "hint": "Backward-compatible migrations, blue-green deploys, feature flags. Expand-contract pattern for column changes."
+            },
+            {
+                "id": "be13",
+                "title": "What is the difference between horizontal and vertical scaling?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Architecture",
+                    "Scale"
+                ],
+                "hint": "Vertical: bigger machine. Horizontal: more machines. Horizontal preferred for high availability but requires stateless services."
+            },
+            {
+                "id": "be14",
+                "title": "Explain how Redis works and common use cases.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Cache",
+                    "Redis"
+                ],
+                "hint": "In-memory key-value store. Use for caching, sessions, pub/sub, rate limiting, leaderboards."
+            },
+            {
+                "id": "be15",
+                "title": "How do you handle errors gracefully in a Node.js/Express application?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Node.js",
+                    "Error Handling"
+                ],
+                "hint": "Global error middleware, async error wrapping (express-async-errors), structured error responses, logging."
+            }
+        ],
+        "system_design": [
+            {
+                "id": "sd1",
+                "title": "Design a URL shortener like bit.ly. Scale it to 100M URLs.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Scale",
+                    "Database"
+                ],
+                "hint": "Base62 encoding, NoSQL for key-value, CDN for redirects, estimate QPS and storage first."
+            },
+            {
+                "id": "sd2",
+                "title": "Design YouTube / Netflix video streaming architecture.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Streaming",
+                    "CDN"
+                ],
+                "hint": "Object storage for videos, CDN distribution, adaptive bitrate streaming (HLS/DASH), separate upload and streaming paths."
+            },
+            {
+                "id": "sd3",
+                "title": "Design a notification system that handles 10M notifications per day.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Queue",
+                    "Scale"
+                ],
+                "hint": "Message queue (Kafka), separate service per channel (push, email, SMS), fan-out strategy, delivery guarantees."
+            },
+            {
+                "id": "sd4",
+                "title": "Design a distributed rate limiter that works across multiple servers.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Redis",
+                    "Distributed"
+                ],
+                "hint": "Token bucket with Redis. Lua script for atomic operations. Sliding window for fairness."
+            },
+            {
+                "id": "sd5",
+                "title": "Design Twitter's feed / timeline system.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Cache",
+                    "Fan-out"
+                ],
+                "hint": "Push vs pull model. Fan-out on write for most users, pull for celebrities. Redis for feed cache."
+            },
+            {
+                "id": "sd6",
+                "title": "Design a typeahead / autocomplete search system.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Design",
+                    "Trie",
+                    "Cache"
+                ],
+                "hint": "Trie data structure, precompute top-k suggestions, CDN cache by prefix, debounce on frontend."
+            },
+            {
+                "id": "sd7",
+                "title": "Design Google Drive / Dropbox file storage system.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Storage",
+                    "Sync"
+                ],
+                "hint": "Block storage for deduplication, metadata in SQL, delta sync, conflict resolution strategy."
+            },
+            {
+                "id": "sd8",
+                "title": "Design a real-time chat application like WhatsApp.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "WebSocket",
+                    "Queue"
+                ],
+                "hint": "WebSockets for real-time, message queues for delivery guarantees, presence system, read receipts."
+            },
+            {
+                "id": "sd9",
+                "title": "Design a ride-sharing service like Uber.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Geolocation",
+                    "Matching"
+                ],
+                "hint": "Geospatial indexing (QuadTree/H3), matching service, driver location updates via WebSocket, surge pricing."
+            },
+            {
+                "id": "sd10",
+                "title": "Design a distributed cache like Memcached.",
+                "difficulty": "Hard",
+                "tags": [
+                    "Design",
+                    "Cache",
+                    "Distributed"
+                ],
+                "hint": "Consistent hashing for distribution, eviction policies (LRU), replication for availability."
+            },
+            {
+                "id": "sd11",
+                "title": "How would you design an API gateway?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Design",
+                    "API",
+                    "Architecture"
+                ],
+                "hint": "Auth, rate limiting, request routing, load balancing, logging, circuit breaker at the gateway level."
+            },
+            {
+                "id": "sd12",
+                "title": "Design a leaderboard system for a game with 50M users.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Design",
+                    "Redis",
+                    "Database"
+                ],
+                "hint": "Redis sorted sets for real-time rankings, batch updates for historical, pagination with rank offset."
+            }
+        ],
+        "devops": [
+            {
+                "id": "do1",
+                "title": "Explain the difference between Docker containers and virtual machines.",
+                "difficulty": "Easy",
+                "tags": [
+                    "Docker",
+                    "Containers"
+                ],
+                "hint": "VMs virtualize hardware (hypervisor). Containers share OS kernel. Containers are faster, lighter, but less isolated."
+            },
+            {
+                "id": "do2",
+                "title": "How does Kubernetes manage container orchestration? Explain pods, deployments, and services.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Kubernetes",
+                    "Orchestration"
+                ],
+                "hint": "Pod: smallest unit (1+ containers). Deployment: manages pod replicas. Service: stable network endpoint for pods."
+            },
+            {
+                "id": "do3",
+                "title": "What is CI/CD? Walk me through setting up a pipeline with GitHub Actions.",
+                "difficulty": "Medium",
+                "tags": [
+                    "CI/CD",
+                    "GitHub Actions"
+                ],
+                "hint": "Trigger on push/PR → lint/test → build → deploy. Use secrets for credentials, environments for staging/prod."
+            },
+            {
+                "id": "do4",
+                "title": "Explain blue-green deployment and canary deployment. When do you use each?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Deployment",
+                    "Strategy"
+                ],
+                "hint": "Blue-green: switch entire traffic at once. Canary: gradually shift traffic %. Canary better for risk mitigation."
+            },
+            {
+                "id": "do5",
+                "title": "How does Kubernetes handle service discovery and load balancing?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Kubernetes",
+                    "Networking"
+                ],
+                "hint": "kube-proxy rules, CoreDNS for service name resolution, Service types (ClusterIP, NodePort, LoadBalancer)."
+            },
+            {
+                "id": "do6",
+                "title": "What is Infrastructure as Code? Compare Terraform vs CloudFormation.",
+                "difficulty": "Medium",
+                "tags": [
+                    "IaC",
+                    "Terraform"
+                ],
+                "hint": "Declarative config for cloud resources. Terraform: multi-cloud, HCL. CloudFormation: AWS-only, JSON/YAML."
+            },
+            {
+                "id": "do7",
+                "title": "Explain how you would set up monitoring and alerting for a production system.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Monitoring",
+                    "Observability"
+                ],
+                "hint": "Metrics (Prometheus), logs (ELK/Loki), traces (Jaeger). Alert on SLI breach, define SLOs, avoid alert fatigue."
+            },
+            {
+                "id": "do8",
+                "title": "What is a Dockerfile? Explain best practices for writing one.",
+                "difficulty": "Easy",
+                "tags": [
+                    "Docker",
+                    "Best Practices"
+                ],
+                "hint": "Minimal base image, multi-stage builds, layer caching, non-root user, .dockerignore, pin versions."
+            },
+            {
+                "id": "do9",
+                "title": "How do you handle secrets management in a Kubernetes cluster?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Kubernetes",
+                    "Security"
+                ],
+                "hint": "Kubernetes Secrets (base64), external secrets (Vault, AWS Secrets Manager), sealed-secrets for GitOps."
+            },
+            {
+                "id": "do10",
+                "title": "What is a service mesh? When would you use Istio or Linkerd?",
+                "difficulty": "Hard",
+                "tags": [
+                    "Kubernetes",
+                    "Networking"
+                ],
+                "hint": "Sidecar proxies handle mTLS, observability, traffic management without code changes. Use at scale when networking complexity grows."
+            },
+            {
+                "id": "do11",
+                "title": "Explain how you'd set up a multi-region deployment for high availability.",
+                "difficulty": "Hard",
+                "tags": [
+                    "AWS",
+                    "Architecture"
+                ],
+                "hint": "Active-active vs active-passive. DNS-based routing (Route 53 health checks), data replication lag, consistency trade-offs."
+            }
+        ],
+        "android": [
+            {
+                "id": "and1",
+                "title": "Explain the Android Activity lifecycle. How do you handle configuration changes?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Android",
+                    "Lifecycle"
+                ],
+                "hint": "onCreate → onStart → onResume → onPause → onStop → onDestroy. Use ViewModel to survive config changes."
+            },
+            {
+                "id": "and2",
+                "title": "What is Jetpack Compose? How is it different from XML-based UI?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Compose",
+                    "UI"
+                ],
+                "hint": "Declarative UI in Kotlin. Recomposition instead of view inflation. Easier state management, less boilerplate."
+            },
+            {
+                "id": "and3",
+                "title": "How does Room database work with LiveData and ViewModel?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Room",
+                    "Architecture"
+                ],
+                "hint": "Room: ORM for SQLite. LiveData: observable data holder. ViewModel: survives configuration changes. MVVM pattern."
+            },
+            {
+                "id": "and4",
+                "title": "Explain Kotlin coroutines and how they differ from threads.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Kotlin",
+                    "Coroutines"
+                ],
+                "hint": "Lightweight, non-blocking. Structured concurrency with scopes. Dispatchers: Main, IO, Default. Suspend functions."
+            },
+            {
+                "id": "and5",
+                "title": "What is the difference between Service, IntentService, and WorkManager?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Android",
+                    "Background Tasks"
+                ],
+                "hint": "Service: long-running on main thread. IntentService: deprecated, background worker. WorkManager: guaranteed deferred work."
+            },
+            {
+                "id": "and6",
+                "title": "How does Retrofit work? How do you handle network errors?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Retrofit",
+                    "Networking"
+                ],
+                "hint": "Type-safe HTTP client. Use Response<T> to handle errors. Interceptors for logging and auth headers."
+            },
+            {
+                "id": "and7",
+                "title": "Explain Dependency Injection in Android using Hilt.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Hilt",
+                    "DI"
+                ],
+                "hint": "@HiltAndroidApp on Application, @AndroidEntryPoint on components, @Inject, @Provides in @Module."
+            },
+            {
+                "id": "and8",
+                "title": "What is the Android Navigation component and how do you pass data between fragments?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Navigation",
+                    "Fragments"
+                ],
+                "hint": "Safe Args for type-safe argument passing. NavController, NavGraph, back stack management."
+            },
+            {
+                "id": "and9",
+                "title": "How do you optimize RecyclerView performance for a large list?",
+                "difficulty": "Medium",
+                "tags": [
+                    "RecyclerView",
+                    "Performance"
+                ],
+                "hint": "DiffUtil for efficient updates, ViewHolder pattern, setHasFixedSize, image loading with Glide/Coil, avoid overdraw."
+            },
+            {
+                "id": "and10",
+                "title": "Explain ProGuard / R8 and why they matter for Android releases.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Build",
+                    "Optimization"
+                ],
+                "hint": "Code shrinking, obfuscation, optimization. Reduces APK size. Keep rules needed for reflection and serialization."
+            }
+        ],
+        "hr": [
+            {
+                "id": "hr1",
+                "title": "Tell me about yourself. Walk me through your professional journey.",
+                "difficulty": "Easy",
+                "tags": [
+                    "Behavioral",
+                    "Introduction"
+                ],
+                "hint": "Past → Present → Future structure. Keep to 2 minutes. Focus on relevant experience, not life story."
+            },
+            {
+                "id": "hr2",
+                "title": "Tell me about a time you disagreed with your manager. How did you handle it?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Behavioral",
+                    "Conflict"
+                ],
+                "hint": "STAR format. Show respect + assertiveness. Focus on professional disagreement, not personal conflict."
+            },
+            {
+                "id": "hr3",
+                "title": "Describe the most challenging technical problem you've solved.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Behavioral",
+                    "Technical"
+                ],
+                "hint": "Set up the context (why hard), your thought process, actions taken, measurable outcome."
+            },
+            {
+                "id": "hr4",
+                "title": "Where do you see yourself in 5 years? How does this role fit your plans?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Career",
+                    "Goals"
+                ],
+                "hint": "Show growth ambition, connect to role's progression path. Avoid: CEO answer. Include: skills you want to build."
+            },
+            {
+                "id": "hr5",
+                "title": "How do you handle working under tight deadlines with multiple priorities?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Behavioral",
+                    "Time Management"
+                ],
+                "hint": "Mention prioritization framework, stakeholder communication, and a real example."
+            },
+            {
+                "id": "hr6",
+                "title": "Describe a time you failed. What did you learn from it?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Behavioral",
+                    "Growth"
+                ],
+                "hint": "Own the failure clearly, don't deflect blame. The learning and follow-up actions are what matter most."
+            },
+            {
+                "id": "hr7",
+                "title": "Why are you leaving your current job? / Why do you want this role?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Motivation"
+                ],
+                "hint": "Stay positive about current employer. Focus on growth opportunity, not escape. Research the company's mission."
+            },
+            {
+                "id": "hr8",
+                "title": "How do you handle feedback and criticism from peers or seniors?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Behavioral",
+                    "Growth"
+                ],
+                "hint": "Show openness, give example of implementing feedback, mention how you seek it proactively."
+            },
+            {
+                "id": "hr9",
+                "title": "Describe a time you had to learn something quickly. How did you approach it?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Behavioral",
+                    "Learning"
+                ],
+                "hint": "Learning strategy, resources used, timeline, outcome. Good place to highlight self-teaching ability."
+            },
+            {
+                "id": "hr10",
+                "title": "How do you collaborate with non-technical team members on projects?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Communication",
+                    "Teamwork"
+                ],
+                "hint": "Translate technical concepts to plain language, align on goals, regular check-ins, document decisions."
+            },
+            {
+                "id": "hr11",
+                "title": "Tell me about a time you showed leadership without formal authority.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Leadership",
+                    "Behavioral"
+                ],
+                "hint": "Influence through expertise and trust, not title. Show initiative, mention impact on team outcome."
+            },
+            {
+                "id": "hr12",
+                "title": "What are your greatest strengths and weaknesses?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Self-awareness"
+                ],
+                "hint": "Strength: genuine with evidence. Weakness: real but not role-critical, show active improvement steps."
+            }
+        ],
+        "aptitude": [
+            {
+                "id": "ap1",
+                "title": "A train travels 360 km at a uniform speed. If the speed had been 5 km/h more, it would have taken 1 hour less. Find the original speed.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Time & Speed",
+                    "Algebra"
+                ],
+                "hint": "Use distance = speed × time. Set up equation: 360/s - 360/(s+5) = 1."
+            },
+            {
+                "id": "ap2",
+                "title": "Two pipes A and B can fill a tank in 12 hours and 15 hours. How long to fill it together?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Pipes & Cisterns"
+                ],
+                "hint": "Combined rate = 1/12 + 1/15 = 9/60 = 3/20. Time = 20/3 ≈ 6.67 hours."
+            },
+            {
+                "id": "ap3",
+                "title": "A bag contains 4 red and 6 blue balls. What is the probability of drawing 2 red balls?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Probability",
+                    "Combinations"
+                ],
+                "hint": "P = C(4,2)/C(10,2) = 6/45 = 2/15."
+            },
+            {
+                "id": "ap4",
+                "title": "Find the next number in the series: 2, 6, 12, 20, 30, ?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Number Series"
+                ],
+                "hint": "Differences: 4, 6, 8, 10, 12. Next = 30 + 12 = 42. Pattern: n(n+1)."
+            },
+            {
+                "id": "ap5",
+                "title": "A person invests ₹10,000 at 10% per annum compound interest. What is the amount after 2 years?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Compound Interest"
+                ],
+                "hint": "A = P(1 + r/100)^n = 10000 × (1.1)^2 = 12100."
+            },
+            {
+                "id": "ap6",
+                "title": "In how many ways can the letters of the word PROGRAMMING be arranged?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Permutations",
+                    "Combinatorics"
+                ],
+                "hint": "Total = 11! / (2! × 2! × 2!) — divide by repeated letters G, R, M. = 4989600."
+            },
+            {
+                "id": "ap7",
+                "title": "A shopkeeper sells an item at 20% profit. If he had bought it at 20% less, profit % would be?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Profit & Loss"
+                ],
+                "hint": "Let CP = 100, SP = 120. New CP = 80, SP = 120. Profit% = 40/80 × 100 = 50%."
+            },
+            {
+                "id": "ap8",
+                "title": "If CLOCK is coded as KCOLC, how is TIGER coded?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Coding & Decoding",
+                    "Reasoning"
+                ],
+                "hint": "The word is reversed. TIGER → REGIT."
+            },
+            {
+                "id": "ap9",
+                "title": "A is twice as old as B. 5 years ago, A was 3 times as old as B. Find their current ages.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Age Problems",
+                    "Algebra"
+                ],
+                "hint": "A = 2B. (A-5) = 3(B-5). Solving: B = 10, A = 20."
+            },
+            {
+                "id": "ap10",
+                "title": "In a 100m race, A beats B by 10m and B beats C by 10m. By how much does A beat C?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Races",
+                    "Ratios"
+                ],
+                "hint": "A:B = 100:90, B:C = 100:90. A:C = 100:81. A beats C by 19m."
+            },
+            {
+                "id": "ap11",
+                "title": "What is the angle between hour and minute hands at 3:40?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Clocks",
+                    "Geometry"
+                ],
+                "hint": "Hour hand at 3:40 → 110°. Minute hand at 40 min → 240°. Angle = |240-110| = 130°."
+            },
+            {
+                "id": "ap12",
+                "title": "Find the missing term: 1, 1, 2, 3, 5, 8, 13, ?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Number Series",
+                    "Fibonacci"
+                ],
+                "hint": "Fibonacci sequence. Each term = sum of previous two. 8 + 13 = 21."
+            },
+            {
+                "id": "ap13",
+                "title": "A man rows at 8 km/h in still water. River flows at 2 km/h. Time to row 30 km downstream?",
+                "difficulty": "Medium",
+                "tags": [
+                    "Boats & Streams"
+                ],
+                "hint": "Downstream speed = 8 + 2 = 10 km/h. Time = 30/10 = 3 hours."
+            },
+            {
+                "id": "ap14",
+                "title": "If 6 men can do a work in 10 days, how many men are needed to finish in 4 days?",
+                "difficulty": "Easy",
+                "tags": [
+                    "Work & Time"
+                ],
+                "hint": "Total work = 60 man-days. Men needed = 60/4 = 15."
+            },
+            {
+                "id": "ap15",
+                "title": "A number when divided by 3 leaves remainder 1, by 4 leaves remainder 2. Find smallest such number.",
+                "difficulty": "Medium",
+                "tags": [
+                    "Number Theory",
+                    "LCM"
+                ],
+                "hint": "CRT: x ≡ 1 (mod 3), x ≡ 2 (mod 4). Try: 10 ÷ 3 = R1, 10 ÷ 4 = R2. Answer: 10."
+            }
+        ]
+    }
+}
