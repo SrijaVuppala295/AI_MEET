@@ -231,13 +231,13 @@ function InterviewFormDialog({ open, onClose, mode, preselect }: FormProps) {
                             </Field>
 
                             {/* Duration */}
-                            <Field label="Duration">
-                                <div className="grid grid-cols-4 gap-2">
+                            <Field label="Duration (minutes)">
+                                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                                     {INTERVIEW_DURATIONS.map((d: { value: number; label: string; sub: string }) => {
                                         const on = duration === d.value;
                                         return (
                                             <button key={d.value} onClick={() => setDuration(d.value)}
-                                                className="flex flex-col items-center rounded-xl py-2.5 transition-all"
+                                                className="flex flex-col items-center justify-center rounded-xl py-2.5 transition-all"
                                                 style={{
                                                     background: on ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)",
                                                     border: `1px solid ${on ? "rgba(96,165,250,0.6)" : "rgba(255,255,255,0.1)"}`,
@@ -247,6 +247,22 @@ function InterviewFormDialog({ open, onClose, mode, preselect }: FormProps) {
                                             </button>
                                         );
                                     })}
+                                    <div className="flex flex-col items-center justify-center rounded-xl py-2.5 transition-all"
+                                         style={{
+                                             background: !INTERVIEW_DURATIONS.some(d => d.value === duration) ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)",
+                                             border: `1px solid ${!INTERVIEW_DURATIONS.some(d => d.value === duration) ? "rgba(96,165,250,0.6)" : "rgba(255,255,255,0.1)"}`
+                                         }}>
+                                        <span className="text-[9px] font-bold text-slate-400 mb-0.5 uppercase tracking-widest">Custom</span>
+                                        <div className="flex items-center text-xs font-bold" style={{ color: "#93c5fd" }}>
+                                            <input 
+                                                type="number" min="5" max="180"
+                                                value={!INTERVIEW_DURATIONS.some(d => d.value === duration) ? duration : ""}
+                                                onChange={e => setDuration(Number(e.target.value) || 30)}
+                                                placeholder="mins"
+                                                className="w-10 bg-transparent text-center outline-none border-b border-blue-500/30"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </Field>
 

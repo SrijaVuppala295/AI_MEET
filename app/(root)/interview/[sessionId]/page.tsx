@@ -5,82 +5,82 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Vapi from "@vapi-ai/web";
 import type { InterviewSession } from "@/types/interview";
+import { getNextApiKey } from "@/lib/key-rotator";
 
-// FIX: Fresh instance every time — no stale singleton
 function createVapi(): Vapi {
     const key = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-    if (!key) throw new Error("NEXT_PUBLIC_VAPI_PUBLIC_KEY is missing in .env.local");
+    if (!key) throw new Error("NEXT_PUBLIC_VAPI_PUBLIC_KEY is missing");
     return new Vapi(key);
 }
 
-type CallStatus = "idle" | "connecting" | "active" | "ending" | "ended";
+type CallStatus = "idle" | "connecting" | "active" | "ending" | "ended" | "reconnecting";
 interface Msg { role: "assistant" | "user"; text: string; ts: number }
 
 function AudioWave({ active, color }: { active: boolean; color: string }) {
     return (
-        <div className="flex items-end justify-center gap-[3px]" style={{ height: 32 }}>
+        <div className="flex items-end justify-center gap-1 h-8">
             {[0.4, 0.65, 1, 0.75, 0.5, 0.85, 0.6, 0.9, 0.45, 0.7].map((h, i) => (
-                <div key={i} style={{
-                    width: 3, borderRadius: 3, background: color,
-                    height: active ? `${h * 100}%` : "18%",
-                    opacity: active ? 0.9 : 0.25,
-                    transition: "height 0.2s ease, opacity 0.3s",
-                    animation: active ? `bwave ${0.6 + i * 0.08}s ease-in-out ${i * 0.04}s infinite alternate` : "none",
-                }} />
+                <div key={i} className="w-1 rounded-full bg-current transition-all duration-200"
+                    style={{
+                        height: active ? `${h * 100}%` : "15%",
+                        color: color,
+                        opacity: active ? 0.8 : 0.2,
+                        animation: active ? `audiopulse ${0.6 + i * 0.1}s ease-in-out infinite alternate` : "none"
+                    }} />
             ))}
-            <style>{`@keyframes bwave{from{transform:scaleY(.3)}to{transform:scaleY(1)}}`}</style>
+            <style>{`@keyframes audiopulse{from{transform:scaleY(0.4)}to{transform:scaleY(1)}}`}</style>
         </div>
     );
 }
 
-function AvatarBox({ label, sublabel, speaking, color, isAI, initial }: {
+function ParticipantCard({ label, sublabel, speaking, color, isAI, initial }: {
     label: string; sublabel: string; speaking: boolean;
     color: string; isAI?: boolean; initial: string;
 }) {
     return (
-        <div className="flex flex-col items-center justify-center gap-5 rounded-3xl p-8 flex-1 transition-all duration-300"
+        <div className="relative group flex flex-col items-center justify-between p-6 rounded-[2rem] transition-all duration-500 flex-1 overflow-hidden"
             style={{
-                background: speaking ? `${color}12` : "rgba(30,41,59,0.6)",
-                border: `2px solid ${speaking ? color + "60" : "rgba(96,165,250,0.12)"}`,
-                boxShadow: speaking ? `0 0 50px ${color}18` : "none",
-                minHeight: 280,
+                background: speaking ? `radial-gradient(circle at top, ${color}15, rgba(15,23,42,0.8))` : "rgba(15,23,42,0.6)",
+                border: `1px solid ${speaking ? color + "80" : "rgba(255,255,255,0.08)"}`,
+                boxShadow: speaking ? `0 0 40px ${color}15, inset 0 0 20px ${color}10` : "none",
+                backdropFilter: "blur(12px)",
             }}>
-            <div className="relative flex items-center justify-center" style={{ width: 96, height: 96 }}>
-                {speaking && (
-                    <>
-                        <div className="absolute inset-0 rounded-full"
-                            style={{ border: `2px solid ${color}`, opacity: 0.3, animation: "ring1 1.5s ease-in-out infinite" }} />
-                        <div className="absolute rounded-full"
-                            style={{ inset: -8, border: `2px solid ${color}`, opacity: 0.15, animation: "ring1 1.5s ease-in-out 0.3s infinite" }} />
-                    </>
-                )}
-                <div className="absolute inset-3 rounded-full flex items-center justify-center"
-                    style={{ background: `${color}20`, border: `2px solid ${color}35` }}>
-                    {isAI ? (
-                        <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-                            <circle cx="19" cy="19" r="11" stroke={color} strokeWidth="2" />
-                            <circle cx="19" cy="19" r="4.5" fill={color} />
-                            <path d="M19 5v4M19 29v4M5 19h4M29 19h4" stroke={color} strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                    ) : (
-                        <span className="text-2xl font-black" style={{ color }}>{initial}</span>
+            
+            {/* Ambient Background Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full blur-[80px] pointer-events-none opacity-20 transition-opacity duration-500"
+                style={{ background: color, display: speaking ? "block" : "none" }} />
+
+            <div className="relative z-10 flex flex-col items-center gap-4 w-full mt-4">
+                <div className="relative">
+                    {speaking && (
+                        <div className="absolute inset-0 rounded-full animate-ping opacity-25" style={{ background: color, animationDuration: '2s' }} />
                     )}
+                    <div className="relative z-10 w-28 h-28 rounded-full flex items-center justify-center border-2 transition-transform duration-300 group-hover:scale-105 shadow-xl glass"
+                        style={{ background: `linear-gradient(135deg, ${color}20, ${color}05)`, borderColor: `${color}40`, backdropFilter: 'blur(10px)' }}>
+                        {isAI ? (
+                            <div className="relative w-14 h-14">
+                                <div className="absolute inset-0 rounded-full border-[3px] border-dashed animate-[spin_8s_linear_infinite]" style={{ borderColor: `${color}80` }} />
+                                <div className="absolute inset-2.5 rounded-full border-2 animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_15px_currentColor]" style={{ background: color, borderColor: `${color}90`, color: color }} />
+                            </div>
+                        ) : (
+                            <span className="text-4xl font-black drop-shadow-md" style={{ color }}>{initial}</span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="text-center mt-2">
+                    <h3 className="text-2xl font-black text-slate-100 tracking-tight">{label}</h3>
+                    <p className="text-sm text-slate-400 font-semibold tracking-wide uppercase mt-1">{sublabel}</p>
                 </div>
             </div>
-            <AudioWave active={speaking} color={color} />
-            <div className="text-center">
-                <p className="text-lg font-black mb-1" style={{ color: "#f1f5f9" }}>{label}</p>
-                <p className="text-xs" style={{ color: "#64748b" }}>{sublabel}</p>
+
+            <div className="relative z-10 w-full mt-8 flex flex-col items-center gap-4">
+                <AudioWave active={speaking} color={color} />
+                <div className={`px-5 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 shadow-lg ${speaking ? "opacity-100 scale-100" : "opacity-40 scale-95"}`}
+                    style={{ background: speaking ? `${color}20` : "rgba(255,255,255,0.05)", color: speaking ? color : "#64748b", border: `1px solid ${speaking ? color + "40" : "rgba(255,255,255,0.1)"}` }}>
+                    {speaking ? "Speaking" : "Active"}
+                </div>
             </div>
-            <div className="px-4 py-1.5 rounded-full text-xs font-bold"
-                style={{
-                    background: speaking ? `${color}20` : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${speaking ? color + "50" : "rgba(255,255,255,0.08)"}`,
-                    color: speaking ? color : "#64748b",
-                }}>
-                {speaking ? "● Speaking" : "Listening"}
-            </div>
-            <style>{`@keyframes ring1{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.12);opacity:.1}}`}</style>
         </div>
     );
 }
@@ -98,43 +98,113 @@ export default function InterviewCallPage() {
     const [muted, setMuted] = useState(false);
     const [elapsed, setElapsed] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [reconnecting, setReconnecting] = useState(false);
+    const [wrapUpTriggered, setWrapUpTriggered] = useState(false);
+    const [showTranscript, setShowTranscript] = useState(false);
 
     const transcriptRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const startRef = useRef(0);
     const endingRef = useRef(false);
-    const startedRef = useRef(false);
     const vapiRef = useRef<Vapi | null>(null);
+    const retryCountRef = useRef(0);
 
     useEffect(() => {
         fetch(`/api/interview/sessions?id=${sessionId}`)
             .then(r => r.ok ? r.json() : null)
             .then(d => {
                 if (d?.session) {
-                    console.log("[interview] session loaded:", {
-                        assistantId: d.session.assistantId,
-                        interviewType: d.session.interviewType,
-                        durationMinutes: d.session.durationMinutes,
-                    });
-                    if (!d.session.assistantId) {
-                        setError("Assistant ID is empty.\n\nCheck these in .env.local:\nNEXT_PUBLIC_VAPI_ASSISTANT_FRONTEND\nNEXT_PUBLIC_VAPI_ASSISTANT_BACKEND etc.\n\nThen restart: npm run dev");
-                        return;
-                    }
                     setSession(d.session);
+                    if (!d.session.assistantId) setError("Configuration Error: Missing Assistant ID.");
                 } else {
                     setError("Session not found.");
                 }
             })
-            .catch(() => setError("Could not load session."));
+            .catch(() => setError("Network error while loading session."));
     }, [sessionId]);
 
+    const startVapi = useCallback(async () => {
+        if (!session || endingRef.current) return;
+        
+        setCallStatus(reconnecting ? "reconnecting" : "connecting");
+        setError(null);
+
+        let vapi: Vapi;
+        try { vapi = createVapi(); }
+        catch (e: any) { setError(e.message); return; }
+
+        vapiRef.current = vapi;
+        vapi.removeAllListeners();
+
+        vapi.on("call-start", () => {
+            setCallStatus("active");
+            setReconnecting(false);
+            retryCountRef.current = 0;
+        });
+
+        vapi.on("call-end", () => {
+            if (!endingRef.current && !reconnecting) handleEnd();
+        });
+
+        vapi.on("error", (e: any) => {
+            const rawMsg = e?.error?.message?.msg || e?.message || "Unknown Error";
+            console.error("[vapi] error intercepted:", e);
+
+            if (String(rawMsg).toLowerCase().includes("ejected") || String(rawMsg).toLowerCase().includes("meeting has ended")) {
+                if (retryCountRef.current < 5) {
+                    retryCountRef.current++;
+                    setReconnecting(true);
+                    setTimeout(() => startVapi(), 1000); // Backoff retry
+                } else {
+                    console.warn("Connection limits exhausted, ending interview early...");
+                    if (!endingRef.current) handleEnd();
+                }
+            } else {
+                console.warn(`Vapi warning intercepted: ${rawMsg}`, e);
+                // Do not throw fatal error overlay for typical Vapi internal exceptions, gracefully ignore or end
+                if (callStatus === "active" && !endingRef.current) {
+                    // If active but throws something terminal, we shouldn't kill UI - just wrap it up.
+                }
+            }
+        });
+
+        vapi.on("speech-start", () => setAiSpeaking(true));
+        vapi.on("speech-end", () => setAiSpeaking(false));
+        vapi.on("message", (msg: any) => {
+            if (msg?.type === "transcript" && msg?.role === "user") {
+                setUserSpeaking(msg.transcriptType === "partial");
+                if (msg.transcriptType === "final" && msg.transcript?.trim()) {
+                    setMessages(prev => [...prev.slice(-49), { role: "user", text: msg.transcript, ts: Date.now() }]);
+                }
+            }
+            if (msg?.type === "transcript" && msg?.role === "assistant" && msg.transcriptType === "final") {
+                if (msg.transcript?.trim()) {
+                    setMessages(prev => [...prev.slice(-49), { role: "assistant", text: msg.transcript, ts: Date.now() }]);
+                }
+            }
+        });
+
+        try {
+            // Initiate the Vapi call using the assigned Assistant ID from the session rather than building an inline model
+            await vapi.start(session.assistantId, {
+                variableValues: {
+                    sessionId,
+                    userId: session.userId,
+                    role: session.role || "",
+                    techStack: (session.techStack || []).join(", "),
+                }
+            });
+        } catch (e: any) {
+            console.warn("Init Failed but swallowed to allow graceful end", e);
+            if (!endingRef.current) handleEnd();
+        }
+    }, [session, sessionId, reconnecting]);
+
     useEffect(() => {
-        if (session && callStatus === "idle" && !startedRef.current) {
-            startedRef.current = true;
+        if (session && callStatus === "idle" && !retryCountRef.current && !endingRef.current) {
             startVapi();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session]);
+    }, [session, callStatus, startVapi]);
 
     useEffect(() => {
         if (callStatus === "active") {
@@ -144,105 +214,39 @@ export default function InterviewCallPage() {
             if (timerRef.current) clearInterval(timerRef.current);
         }
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [callStatus]);
+    }, [callStatus, elapsed]);
 
+    // Handle graceful AI wrap up
     useEffect(() => {
-        if (transcriptRef.current) transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
-    }, [messages]);
-
-    useEffect(() => {
-        return () => {
-            const v = vapiRef.current;
-            if (v) { try { v.removeAllListeners(); v.stop(); } catch { } vapiRef.current = null; }
-        };
-    }, []);
-
-    const startVapi = useCallback(async () => {
-        if (!session) return;
-        setCallStatus("connecting");
-
-        let vapi: Vapi;
-        try { vapi = createVapi(); }
-        catch (e: any) { setError(e.message); setCallStatus("idle"); return; }
-
-        vapi.removeAllListeners();
-        vapiRef.current = vapi;
-
-        vapi.on("call-start", () => { console.log("[vapi] ✓ call-start"); setCallStatus("active"); });
-        vapi.on("call-end", () => { console.log("[vapi] call-end"); handleEnd(); });
-
-        vapi.on("error", (e: any) => {
-            const msg =
-                e?.error?.errorMsg ??
-                e?.error?.message?.msg ??
-                e?.error?.message ??
-                e?.message ??
-                (typeof e === "string" ? e : "Unknown error");
-
-            console.error("[vapi] error:", JSON.stringify(e, null, 2));
-
-            if (String(msg).toLowerCase().includes("ejected") || String(msg).toLowerCase().includes("meeting has ended")) {
-                setError(
-                    "Call ejected by Vapi (\"Meeting has ended\").\n\n" +
-                    "Most likely causes:\n" +
-                    "1. Your Vapi account has hit the free tier call limit\n" +
-                    "   → Check dashboard.vapi.ai → Usage\n\n" +
-                    "2. The assistant ID is incorrect\n" +
-                    "   → Check .env.local NEXT_PUBLIC_VAPI_ASSISTANT_* values\n\n" +
-                    "3. Assistant was deleted or disabled in Vapi dashboard"
-                );
-            } else {
-                setError(`Vapi error: ${msg}`);
+        if (!session || callStatus !== "active" || endingRef.current) return;
+        
+        const limitSeconds = (session.durationMinutes || 30) * 60;
+        
+        if (elapsed >= limitSeconds && !wrapUpTriggered && vapiRef.current) {
+            setWrapUpTriggered(true);
+            try {
+                vapiRef.current.send({
+                    type: "add-message",
+                    message: {
+                        role: "system",
+                        content: "The required time for this interview has been reached. Please wrap up the interview gracefully now, do NOT ask any new questions, and ask the user if they have any final questions for you about the role or company. Once the user is completely finished and has no more questions, thank them for their time and explicitly instruct them: 'You can now press the red End Call button at the bottom of your screen to conclude the interview and generate your feedback.'"
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to send wrap-up message:", e);
             }
-            setCallStatus("idle");
-        });
-
-        vapi.on("speech-start", () => setAiSpeaking(true));
-        vapi.on("speech-end", () => setAiSpeaking(false));
-
-        vapi.on("message", (msg: any) => {
-            if (msg?.type === "transcript" && msg?.transcriptType === "partial" && msg?.role === "user") {
-                setUserSpeaking(true);
-            }
-            if (msg?.type === "transcript" && msg?.transcriptType === "final" && msg?.role === "user") {
-                setUserSpeaking(false);
-                if (msg.transcript?.trim()) setMessages(prev => [...prev, { role: "user", text: msg.transcript, ts: Date.now() }]);
-            }
-            if (msg?.type === "transcript" && msg?.transcriptType === "final" && msg?.role === "assistant") {
-                if (msg.transcript?.trim()) setMessages(prev => [...prev, { role: "assistant", text: msg.transcript, ts: Date.now() }]);
-            }
-        });
-
-        console.log("[vapi] starting assistantId:", session.assistantId);
-        try {
-            await vapi.start(session.assistantId, {
-                variableValues: {
-                    sessionId,
-                    userId: session.userId,
-                    userName: session.userName ?? "Candidate",
-                    interviewType: session.interviewType || session.company || "",
-                    role: session.role ?? "",
-                    experienceLevel: session.experienceLevel ?? "",
-                    techStack: (session.techStack ?? []).join(", ") || "General",
-                    durationMinutes: String(session.durationMinutes ?? 30),
-                    resumeText: session.resumeText || "No resume provided.",
-                },
-            });
-        } catch (e: any) {
-            console.error("[vapi] start() threw:", e);
-            setError(`Failed to start: ${e?.message ?? "Check NEXT_PUBLIC_VAPI_PUBLIC_KEY"}`);
-            setCallStatus("idle");
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session, sessionId]);
+    }, [elapsed, session, callStatus, wrapUpTriggered]);
+
+    useEffect(() => {
+        if (transcriptRef.current) transcriptRef.current.scrollTo({ top: transcriptRef.current.scrollHeight, behavior: "smooth" });
+    }, [messages]);
 
     const handleEnd = useCallback(async () => {
         if (endingRef.current) return;
         endingRef.current = true;
         setCallStatus("ending");
-        const v = vapiRef.current;
-        if (v) { try { v.removeAllListeners(); v.stop(); } catch { } vapiRef.current = null; }
+        if (vapiRef.current) { try { vapiRef.current.stop(); } catch { } }
         try {
             await fetch("/api/interview/end", {
                 method: "POST", headers: { "Content-Type": "application/json" },
@@ -252,185 +256,176 @@ export default function InterviewCallPage() {
         router.push(`/interview/${sessionId}/feedback`);
     }, [messages, elapsed, sessionId, router]);
 
-    function toggleMute() {
-        const v = vapiRef.current; if (!v) return;
-        const next = !muted; v.setMuted(next); setMuted(next);
-    }
+    const toggleMute = useCallback(() => {
+        if (vapiRef.current && callStatus === "active") {
+            try {
+                vapiRef.current.setMuted(!muted);
+                setMuted(!muted);
+            } catch (e) {
+                console.warn("Failed to toggle mute:", e);
+            }
+        }
+    }, [muted, callStatus]);
 
-    const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
-    const ss = String(elapsed % 60).padStart(2, "0");
-    const maxSecs = (session?.durationMinutes ?? 30) * 60;
-    const timeProgress = Math.min((elapsed / maxSecs) * 100, 100);
-    const timeColor = timeProgress > 85 ? "#f87171" : timeProgress > 65 ? "#fbbf24" : "#60a5fa";
+    const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
     if (error) {
         return (
-            <div className="flex items-center justify-center min-h-screen px-6" style={{ background: "#06080f", paddingTop: "64px" }}>
-                <div className="text-center max-w-lg w-full p-8 rounded-2xl"
-                    style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.25)" }}>
-                    <div className="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4"
-                        style={{ background: "rgba(239,68,68,0.15)" }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round">
-                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl">
+                <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900 border border-red-500/20 shadow-2xl text-center">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
-                    <p className="text-lg font-black mb-4" style={{ color: "#fca5a5" }}>Call Failed</p>
-                    <pre className="text-sm text-left mb-6 whitespace-pre-wrap leading-relaxed rounded-xl p-4"
-                        style={{ color: "#94a3b8", background: "rgba(0,0,0,0.3)" }}>{error}</pre>
-                    <div className="flex gap-3">
-                        <button onClick={() => { setError(null); startedRef.current = false; endingRef.current = false; setCallStatus("idle"); if (session) startVapi(); }}
-                            className="flex-1 h-11 rounded-xl text-sm font-bold text-white"
-                            style={{ background: "linear-gradient(135deg,#1d4ed8,#3b82f6)", border: "none" }}>
-                            Retry
-                        </button>
-                        <button onClick={() => router.push("/interview")}
-                            className="flex-1 h-11 rounded-xl text-sm font-bold"
-                            style={{ color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)", background: "transparent" }}>
-                            Back
-                        </button>
+                    <h2 className="text-2xl font-bold text-white mb-2">Interview Interrupted</h2>
+                    <p className="text-slate-400 mb-8 whitespace-pre-wrap">{error}</p>
+                    <div className="flex gap-4">
+                        <button onClick={() => { retryCountRef.current = 0; startVapi(); }} className="flex-1 py-3 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors">Try Reconnect</button>
+                        <button onClick={() => router.push("/interview")} className="flex-1 py-3 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-colors">Exit</button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    const userName = session?.userName ?? "You";
-    const interviewLabel = session?.interviewType || session?.company || "Interview";
-
     return (
-        <div className="flex flex-col" style={{ background: "#06080f", minHeight: "100vh", color: "#f1f5f9", paddingTop: "64px" }}>
-
-            {/* HEADER */}
-            <div className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(96,165,250,0.12)", background: "rgba(6,8,15,0.95)", backdropFilter: "blur(20px)" }}>
-
-                <div className="flex items-center gap-3">
-                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{
-                        background: callStatus === "active" ? "#34d399"
-                            : callStatus === "connecting" ? "#fbbf24"
-                                : callStatus === "ending" ? "#f87171" : "#475569",
-                        boxShadow: callStatus === "active" ? "0 0 10px #34d399" : "none",
-                        animation: callStatus === "active" ? "livepulse 2s ease-in-out infinite" : "none",
-                    }} />
-                    <div>
-                        <p className="text-sm font-black" style={{ color: "#f1f5f9" }}>{interviewLabel}</p>
-                        <p className="text-xs" style={{ color: "#64748b" }}>{session?.role ?? "Loading…"} · {session?.experienceLevel ?? ""}</p>
+        <div className="relative flex flex-col min-h-screen pt-[72px] pb-6 w-full bg-[#020617] text-slate-100 font-sans">
+            {/* Background Texture */}
+            <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
+            
+            {/* COMPACT HEADER */}
+            <header className="relative z-20 h-16 px-6 flex items-center justify-between border-b border-white/5 backdrop-blur-md bg-slate-950/30">
+                <div className="flex items-center gap-3 w-1/3">
+                    <div className={`w-3 h-3 rounded-full ${callStatus === "active" ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)] animate-pulse" : "bg-amber-500 animate-bounce"}`} />
+                    <div className="hidden sm:block">
+                        <h1 className="text-xs sm:text-sm font-black tracking-tight uppercase text-blue-400 flex items-center gap-2">
+                            {reconnecting ? "Reconnecting..." : session?.interviewType || "Live Mock Session"}
+                            {wrapUpTriggered && <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-500 border border-amber-500/30">Wrapping up...</span>}
+                        </h1>
+                        <p className="text-[9px] sm:text-[10px] text-slate-500 font-bold truncate max-w-[150px] sm:max-w-[250px]">
+                            {session?.role}
+                        </p>
                     </div>
-                    <span className="ml-2 px-2.5 py-1 rounded-full text-xs font-bold hidden sm:block"
-                        style={{
-                            background: callStatus === "active" ? "rgba(52,211,153,0.12)" : callStatus === "connecting" ? "rgba(251,191,36,0.12)" : callStatus === "ending" ? "rgba(248,113,113,0.12)" : "rgba(96,165,250,0.1)",
-                            color: callStatus === "active" ? "#34d399" : callStatus === "connecting" ? "#fbbf24" : callStatus === "ending" ? "#f87171" : "#93c5fd",
-                            border: "1px solid currentColor",
-                        }}>
-                        {callStatus === "active" ? "● Live" : callStatus === "connecting" ? "Connecting…" : callStatus === "ending" ? "Ending…" : "Idle"}
+                </div>
+
+                <div className="flex flex-col items-center justify-center flex-1">
+                    <span className="text-2xl sm:text-3xl font-mono font-black tracking-widest text-white tabular-nums leading-none drop-shadow-md">
+                        {formatTime(elapsed)}
                     </span>
-                </div>
-
-                <div className="flex flex-col items-center gap-1.5">
-                    <p className="text-3xl font-black tabular-nums" style={{ color: timeColor }}>{mm}:{ss}</p>
-                    <div className="w-36 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${timeProgress}%`, background: timeColor }} />
+                    <div className="w-24 sm:w-32 h-1 bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="h-full bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_#3b82f6]" style={{ width: `${Math.min((elapsed / ((session?.durationMinutes || 30) * 60)) * 100, 100)}%` }} />
                     </div>
-                    <p className="text-[10px]" style={{ color: "#334155" }}>{session?.durationMinutes ?? 30} min session</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <button onClick={toggleMute} disabled={callStatus !== "active"} title={muted ? "Unmute" : "Mute"}
-                        className="h-10 w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30"
-                        style={{ background: muted ? "rgba(248,113,113,0.15)" : "rgba(96,165,250,0.1)", border: `1px solid ${muted ? "rgba(248,113,113,0.4)" : "rgba(96,165,250,0.25)"}` }}>
-                        {muted ? (
-                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.8" strokeLinecap="round">
-                                <line x1="1" y1="1" x2="23" y2="23" />
-                                <path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6" />
-                                <path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23" />
-                                <line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
-                            </svg>
-                        ) : (
-                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round">
-                                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-                                <path d="M19 10v2a7 7 0 01-14 0v-2" />
-                                <line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
-                            </svg>
+                <div className="flex items-center gap-3 w-1/3 justify-end">
+                    <button onClick={() => setShowTranscript(!showTranscript)} className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold tracking-widest uppercase transition-all ${showTranscript ? "bg-blue-500/20 border-blue-500/40 text-blue-300" : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"}`}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        {showTranscript ? "Hide Log" : "Transcript"}
+                    </button>
+                </div>
+            </header>
+
+            {/* MAIN CONTENT AREA */}
+            <main className="relative z-10 flex flex-1 overflow-hidden">
+                <div className="flex-1 flex flex-col p-4 sm:p-6 gap-6 min-h-0 relative">
+                    
+                    {/* Status & Meta Info */}
+                    <div className="flex flex-col items-center gap-4 mt-2">
+                        {(callStatus === "connecting" || reconnecting) && (
+                            <div className="px-5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold backdrop-blur-xl animate-bounce">
+                                {reconnecting ? "⚡ Re-aligning Aria's neural pathways..." : "◌ Syncing with AI Interviewer..."}
+                            </div>
                         )}
-                    </button>
-                    <button onClick={() => handleEnd()} disabled={callStatus === "idle" || callStatus === "ended" || callStatus === "ending"}
-                        className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-30 hover:opacity-90"
-                        style={{ background: "linear-gradient(135deg,#dc2626,#ef4444)", border: "none" }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" />
-                        </svg>
-                        {callStatus === "ending" ? "Ending…" : "End Call"}
-                    </button>
-                </div>
-                <style>{`@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
-            </div>
 
-            {/* MAIN */}
-            <div className="flex flex-1 overflow-hidden">
-                <div className="flex flex-col justify-center p-8 gap-6 flex-1">
-                    {callStatus === "connecting" && (
-                        <div className="text-center py-3 px-5 rounded-2xl text-sm font-semibold"
-                            style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", color: "#fbbf24" }}>
-                            ◌ Connecting to AI Interviewer — allow microphone access if prompted…
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                            {["Type", "Experience", "Duration"].map((key, i) => (
+                                <div key={key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/40 border border-white/5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                    <span className="text-slate-600">{key}:</span>
+                                    <span className="text-slate-200">
+                                        {i === 0 ? session?.interviewType : i === 1 ? session?.experienceLevel : `${session?.durationMinutes}m`}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                    )}
-                    <div className="flex gap-5" style={{ maxHeight: 320 }}>
-                        <AvatarBox label="Aria" sublabel={`AI Interviewer · ${interviewLabel}`} speaking={aiSpeaking} color="#3b82f6" initial="A" isAI />
-                        <AvatarBox label={userName} sublabel={session?.role ?? "Candidate"} speaking={userSpeaking} color="#34d399" initial={userName.charAt(0).toUpperCase()} />
                     </div>
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {[
-                            { label: "Type", value: session?.interviewType || session?.company || "--" },
-                            { label: "Level", value: session?.experienceLevel ?? "--" },
-                            { label: "Time", value: `${session?.durationMinutes ?? 30} min` },
-                            ...(session?.techStack?.slice(0, 2).map(t => ({ label: "Stack", value: t })) ?? []),
-                        ].map((p, i) => (
-                            <span key={i} className="text-xs font-medium px-3 py-1.5 rounded-lg"
-                                style={{ background: "rgba(30,41,59,0.8)", border: "1px solid rgba(96,165,250,0.15)", color: "#94a3b8" }}>
-                                <span style={{ color: "#475569" }}>{p.label}: </span>{p.value}
-                            </span>
-                        ))}
+
+                    {/* Participants Grid */}
+                    <div className="flex-1 flex flex-col sm:flex-row gap-6 sm:gap-10 min-h-0 items-center justify-center max-w-5xl mx-auto w-full px-4 mt-6">
+                        <ParticipantCard 
+                            label="Aria" 
+                            sublabel="AI Interviewer" 
+                            speaking={aiSpeaking} 
+                            color="#3b82f6" 
+                            initial="A" 
+                            isAI 
+                        />
+                        <ParticipantCard 
+                            label={session?.userName || "You"} 
+                            sublabel="Candidate" 
+                            speaking={userSpeaking} 
+                            color="#10b981" 
+                            initial={(session?.userName || "Y").charAt(0)} 
+                        />
+                    </div>
+
+                    {/* ACTION BAR (Under Cards) */}
+                    <div className="flex items-center justify-center gap-4 mt-4 mb-4">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/5 shadow-2xl">
+                            {/* Mute Button */}
+                            <button onClick={toggleMute} disabled={callStatus !== "active"}
+                                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all border ${muted ? "bg-amber-500/20 border-amber-500/40 text-amber-500" : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/15"} disabled:opacity-50 disabled:cursor-not-allowed`}>
+                                {muted ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3zM1 1l22 22"/></svg>
+                                ) : (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                )}
+                            </button>
+
+                            {/* End Call Button */}
+                            <button onClick={handleEnd} disabled={callStatus === "ended" || callStatus === "ending"} title="End Interview"
+                                className="flex items-center justify-center w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] disabled:opacity-50 disabled:cursor-not-allowed group">
+                                <svg className="w-6 h-6 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
+                                    <line x1="22" y1="2" x2="2" y2="22" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div className="w-80 flex-shrink-0 flex flex-col" style={{ borderLeft: "1px solid rgba(96,165,250,0.12)", background: "rgba(15,23,42,0.8)" }}>
-                    <div className="px-5 py-4 flex-shrink-0 flex items-center justify-between"
-                        style={{ borderBottom: "1px solid rgba(96,165,250,0.1)" }}>
-                        <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#475569" }}>Transcript</p>
-                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                            style={{ background: "rgba(96,165,250,0.1)", color: "#93c5fd" }}>{messages.length}</span>
+                {/* TRANSCRIPT SIDEBAR */}
+                <aside className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${showTranscript ? "w-80 xl:w-96 border-l border-white/5 opacity-100 translate-x-0" : "w-0 opacity-0 overflow-hidden translate-x-10 border-transparent"} hidden lg:flex flex-shrink-0 flex-col bg-slate-950/60 backdrop-blur-3xl fixed right-0 top-[136px] bottom-0 z-30`}>
+                    <div className="p-5 border-b border-white/5 flex items-center justify-between">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Live Transcript</h2>
+                        <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-md font-black">{messages.length}</span>
                     </div>
-                    <div ref={transcriptRef} className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: "none" }}>
+                    
+                    <div ref={transcriptRef} className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth" style={{ scrollbarWidth: "none" }}>
                         {messages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full gap-3">
-                                {callStatus === "connecting" && (
-                                    <div className="h-7 w-7 rounded-full border-2 animate-spin"
-                                        style={{ borderColor: "#1e3a5f", borderTopColor: "#3b82f6" }} />
-                                )}
-                                <p className="text-xs text-center" style={{ color: "#334155" }}>
-                                    {callStatus === "connecting" ? "Establishing connection…" : "Transcript will appear here as you speak"}
-                                </p>
+                            <div className="h-full flex flex-col items-center justify-center text-center opacity-20 gap-3">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                <p className="text-[10px] font-medium px-4">Synchronizing...</p>
                             </div>
                         ) : messages.map((m, i) => (
-                            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                                <div className="max-w-[88%] rounded-2xl px-3.5 py-2.5"
-                                    style={{
-                                        background: m.role === "user" ? "rgba(59,130,246,0.2)" : "rgba(30,41,59,0.8)",
-                                        border: `1px solid ${m.role === "user" ? "rgba(96,165,250,0.35)" : "rgba(96,165,250,0.1)"}`,
-                                    }}>
-                                    <p className="text-[10px] font-bold mb-1 uppercase tracking-wide"
-                                        style={{ color: m.role === "user" ? "#93c5fd" : "#475569" }}>
-                                        {m.role === "user" ? userName : "Aria"}
+                            <div key={i} className={`flex flex-col gap-1.5 ${m.role === "user" ? "items-end" : "items-start"}`}>
+                                <div className={`px-4 py-2.5 rounded-2xl text-[11px] leading-relaxed max-w-[90%] transition-all ${
+                                    m.role === "user" 
+                                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-100 rounded-tr-none" 
+                                    : "bg-blue-500/10 border border-blue-500/20 text-blue-100 rounded-tl-none"
+                                }`}>
+                                    <p className="font-black uppercase tracking-widest text-[8px] mb-1 opacity-40">
+                                        {m.role === "user" ? session?.userName : "Aria"}
                                     </p>
-                                    <p className="text-xs leading-relaxed" style={{ color: m.role === "user" ? "#e2e8f0" : "#cbd5e1" }}>
-                                        {m.text}
-                                    </p>
+                                    {m.text}
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
-            </div>
+
+                    <div className="p-4 bg-slate-900/10 border-t border-white/5">
+                        <p className="text-[9px] text-slate-600 text-center font-bold tracking-tight uppercase">Secured Session Gateway</p>
+                    </div>
+                </aside>
+            </main>
         </div>
     );
 }

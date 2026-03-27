@@ -2,16 +2,18 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin";
+import { getNextApiKeyServer } from "@/lib/key-rotator";
 import { getCurrentUser } from "@/lib/actions/auth.action";
-import type { InterviewFeedback, TranscriptMessage } from "@/types/interview";
+import type { TranscriptMessage, InterviewFeedback } from "@/types/interview";
 
 /* ─── AI provider ─── */
 async function callAI(prompt: string): Promise<string> {
-    if (process.env.GROQ_API_KEY) {
+    const groqKey = getNextApiKeyServer("groq");
+    if (groqKey) {
         try {
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
                 body: JSON.stringify({
                     model: "llama-3.3-70b-versatile",
                     messages: [{ role: "user", content: prompt }],
@@ -22,12 +24,14 @@ async function callAI(prompt: string): Promise<string> {
             if (res.ok) return (await res.json()).choices?.[0]?.message?.content ?? "";
         } catch (e) { console.warn("[feedback] Groq failed:", e); }
     }
-    if (process.env.OPENROUTER_API_KEY) {
+
+    const orKey = getNextApiKeyServer("openrouter");
+    if (orKey) {
         const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                Authorization: `Bearer ${orKey}`,
                 "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
                 "X-Title": "AI Meet",
             },
@@ -40,7 +44,7 @@ async function callAI(prompt: string): Promise<string> {
         });
         if (res.ok) return (await res.json()).choices?.[0]?.message?.content ?? "";
     }
-    throw new Error("No AI provider configured. Set GROQ_API_KEY or OPENROUTER_API_KEY.");
+    throw new Error("No AI provider configured. Set GROQ_API_KEYS or OPEN_ROUTER_API_KEYS.");
 }
 
 /* ─── prompt ─── */

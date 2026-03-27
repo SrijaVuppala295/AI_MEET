@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, adminDb } from "@/firebase/admin";
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import { v4 as uuidv4 } from "uuid";
+import { getNextApiKeyServer } from "@/lib/key-rotator";
 
 // Polyfills for pdf-parse-fork in Node environment
 if (typeof (global as any).DOMMatrix === "undefined") {
@@ -137,11 +138,16 @@ ${resumeData.text || "No text extracted from resume. Please ensure it's a valid 
 ${hasJD ? `JOB DESCRIPTION CONTENT:\n${jdContent}` : ""}
 `;
 
+        const groqKey = getNextApiKeyServer("groq");
+        if (!groqKey) {
+            return NextResponse.json({ error: "No AI provider configured. Set GROQ_API_KEYS." }, { status: 500 });
+        }
+
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                Authorization: `Bearer ${groqKey}`,
             },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",

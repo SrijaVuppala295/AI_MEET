@@ -3,10 +3,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
-async function callGroq(prompt: string): Promise<string> {
+import { getNextApiKeyServer } from "@/lib/key-rotator";
+
+async function callGroq(prompt: string, apiKey: string): Promise<string> {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
             model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: prompt }],
@@ -17,12 +19,12 @@ async function callGroq(prompt: string): Promise<string> {
     return (await res.json()).choices?.[0]?.message?.content ?? "";
 }
 
-async function callOpenRouter(prompt: string): Promise<string> {
+async function callOpenRouter(prompt: string, apiKey: string): Promise<string> {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            Authorization: `Bearer ${apiKey}`,
             "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
             "X-Title": "AI Meet",
         },
@@ -37,11 +39,16 @@ async function callOpenRouter(prompt: string): Promise<string> {
 }
 
 async function generate(prompt: string): Promise<string> {
-    if (process.env.GROQ_API_KEY) {
-        try { return await callGroq(prompt); } catch (e) { console.warn("[quiz/generate] Groq failed:", e); }
+    const groqKey = getNextApiKeyServer("groq");
+    if (groqKey) {
+        try { return await callGroq(prompt, groqKey); } catch (e) { console.warn("[quiz/generate] Groq failed:", e); }
     }
-    if (process.env.OPENROUTER_API_KEY) return await callOpenRouter(prompt);
-    throw new Error("No AI provider configured. Set GROQ_API_KEY or OPENROUTER_API_KEY.");
+    
+    const orKey = getNextApiKeyServer("openrouter");
+    if (orKey) {
+        try { return await callOpenRouter(prompt, orKey); } catch (e) { console.warn("[quiz/generate] OpenRouter failed:", e); }
+    }
+    throw new Error("No AI provider configured. Set GROQ_API_KEYS or OPEN_ROUTER_API_KEYS.");
 }
 
 function buildPrompt(topic: string, level: string, count: number) {
