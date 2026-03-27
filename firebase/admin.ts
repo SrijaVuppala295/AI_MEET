@@ -12,12 +12,14 @@ function initFirebaseAdmin() {
             credential: cert({
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                // Trim potential quotes and handle different newline representations
                 privateKey: process.env.FIREBASE_PRIVATE_KEY
-                    ?.trim()
-                    .replace(/^["']|["']$/g, "") // Remove wrapping quotes
-                    .replace(/\\n/g, "\n")      // Handle literal \n
-                    .replace(/\n/g, "\n"),       // Ensure internal newlines are preserved
+                    ? process.env.FIREBASE_PRIVATE_KEY
+                        .replace(/\\n/g, "\n")
+                        .replace(/\"/g, "")
+                        .replace(/\'/g, "")
+                        .replace(/\\/g, "")
+                        .trim()
+                    : undefined,
             }),
         });
     }
