@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, db } from "@/firebase/admin";
+import { auth, adminDb } from "@/firebase/admin";
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import { v4 as uuidv4 } from "uuid";
 
@@ -190,7 +190,7 @@ ${hasJD ? `JOB DESCRIPTION CONTENT:\n${jdContent}` : ""}
         try {
             const user = await getCurrentUser();
             if (user?.id) {
-                await db
+                await adminDb
                     .collection("users")
                     .doc(user.id)
                     .collection("prep_sessions")

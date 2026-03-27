@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, db } from "@/firebase/admin";
+import { auth, adminDb } from "@/firebase/admin";
 import { cookies } from "next/headers";
 
 // Session duration (1 week)
@@ -27,7 +27,7 @@ export async function signUp(params: SignUpParams) {
     const { uid, name, email } = params;
 
     try {
-        await db.collection("users").doc(uid).set({
+        await adminDb.collection("users").doc(uid).set({
             name,
             email,
         });
@@ -79,6 +79,37 @@ export async function signIn(params: SignInParams) {
     }
 }
 
+export async function signInWithOAuth(params: { idToken: string; name: string; email: string; provider: string }) {
+    const { idToken, name, email, provider } = params;
+
+    try {
+        const decodedToken = await auth.verifyIdToken(idToken);
+        const uid = decodedToken.uid;
+
+        // Check if user doc exists, create if not
+        const userDoc = await adminDb.collection("users").doc(uid).get();
+        if (!userDoc.exists) {
+            await adminDb.collection("users").doc(uid).set({
+                name,
+                email,
+            });
+        }
+
+        await setSessionCookie(idToken);
+
+        return {
+            success: true,
+            message: `Signed in with ${provider} successfully.`,
+        };
+    } catch (error: any) {
+        console.error(`Error signing in with ${provider}:`, error);
+        return {
+            success: false,
+            message: `Failed to sign in with ${provider}. Please try again.`,
+        };
+    }
+}
+
 export async function signOut() {
     const cookieStore = await cookies();
     cookieStore.delete("session");
@@ -94,7 +125,7 @@ export async function getCurrentUser(): Promise<User | null> {
     try {
         const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
 
-        const userRecord = await db
+        const userRecord = await adminDb
             .collection("users")
             .doc(decodedClaims.uid)
             .get();
@@ -106,7 +137,9 @@ export async function getCurrentUser(): Promise<User | null> {
             id: userRecord.id,
         } as User;
     } catch (error) {
-        console.log(error);
+        // If the session cookie is invalid (e.g. wrong project id, expired), clear it.
+        console.log("Invalid session cookie detected. Clearing it...", error);
+        cookieStore.delete("session");
         return null;
     }
 }

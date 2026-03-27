@@ -1,63 +1,77 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect, useCallback } from "react";
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid,
-    Tooltip, ResponsiveContainer,
+    LineChart, Line, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
+import {
+    Dialog, DialogContent, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+    Select, SelectContent, SelectItem,
+    SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
-/* ─────────────────────────────────────────────
-   STATIC DATA
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   TYPES
+══════════════════════════════════════════ */
+interface QuizSession {
+    id: string;
+    topic: string;
+    level: string;
+    correct: number;
+    total: number;
+    score: number;
+    createdAt: string;
+    feedback?: string;
+    durationSeconds?: number;
+}
+interface QuizStats {
+    avgScore: number;
+    bestScore: number;
+    latestScore: number;
+    totalQuestions: number;
+    totalSessions: number;
+    improvement: number;
+    streak: number;
+    topicsCovered: number;
+}
+interface ScorePoint { date: string; score: number; fullDate: string }
+interface Question {
+    id: string;
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+}
+interface ActiveQuiz { topic: string; level: string; questions: Question[] }
+
+/* ══════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════ */
 const TOPICS = [
     "JavaScript", "TypeScript", "React", "Node.js",
     "System Design", "Data Structures & Algorithms",
-    "CSS / HTML", "SQL & Databases",
+    "CSS & HTML", "SQL & Databases",
     "Git & Version Control", "Docker & Containers",
     "AWS & Cloud", "HR & Behavioral",
 ];
-
 const DIFFICULTY_LEVELS = [
-    { value: "beginner", label: "Beginner", description: "Foundational concepts" },
-    { value: "intermediate", label: "Intermediate", description: "Applied problem solving" },
-    { value: "advanced", label: "Advanced", description: "Expert-depth questions" },
+    { value: "beginner", label: "Beginner", sub: "Foundational concepts" },
+    { value: "intermediate", label: "Intermediate", sub: "Applied problem solving" },
+    { value: "advanced", label: "Advanced", sub: "Expert-depth questions" },
 ];
-
 const QUESTION_COUNTS = [5, 10, 15, 20];
 
-const SCORE_HISTORY = [
-    { date: "Mar 1", score: 55 },
-    { date: "Mar 3", score: 62 },
-    { date: "Mar 6", score: 58 },
-    { date: "Mar 8", score: 74 },
-    { date: "Mar 10", score: 68 },
-    { date: "Mar 12", score: 81 },
-    { date: "Mar 14", score: 87 },
-];
-
-const PAST_SESSIONS = [
-    { id: "1", topic: "JavaScript", level: "Intermediate", correct: 9, total: 10, date: "2025-03-14" },
-    { id: "2", topic: "React", level: "Advanced", correct: 11, total: 15, date: "2025-03-12" },
-    { id: "3", topic: "Data Structures & Algorithms", level: "Beginner", correct: 6, total: 10, date: "2025-03-10" },
-    { id: "4", topic: "System Design", level: "Intermediate", correct: 5, total: 5, date: "2025-03-08" },
-    { id: "5", topic: "TypeScript", level: "Advanced", correct: 14, total: 20, date: "2025-03-05" },
-    { id: "6", topic: "SQL & Databases", level: "Beginner", correct: 8, total: 10, date: "2025-03-02" },
-];
-
-/* ─────────────────────────────────────────────
+/* ══════════════════════════════════════════
    HELPERS
-───────────────────────────────────────────── */
-const scorePct = (c: number, t: number) => Math.round((c / t) * 100);
+══════════════════════════════════════════ */
+function pct(c: number, t: number) { return t === 0 ? 0 : Math.round((c / t) * 100); }
 
 function scoreColor(s: number) {
     if (s >= 80) return "#22c55e";
@@ -65,176 +79,142 @@ function scoreColor(s: number) {
     return "#ef4444";
 }
 
-function scoreLabel(s: number) {
+function scoreGrade(s: number) {
     if (s >= 90) return "Excellent";
     if (s >= 75) return "Proficient";
     if (s >= 60) return "Adequate";
-    return "Needs Review";
+    return "Needs Work";
 }
 
-/* ─────────────────────────────────────────────
-   CHART TOOLTIP
-───────────────────────────────────────────── */
-function ChartTooltip({ active, payload, label }: any) {
+function fmtDateTime(iso: string) {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })
+        + " " + d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+/* ══════════════════════════════════════════
+   CUSTOM CHART TOOLTIP
+══════════════════════════════════════════ */
+interface ChartTooltipProps {
+    active?: boolean;
+    payload?: Array<{
+        payload: ScorePoint;
+    }>;
+}
+
+function ChartTooltip({ active, payload }: ChartTooltipProps) {
     if (!active || !payload?.length) return null;
-    const val = payload[0].value as number;
+    const { score, fullDate } = payload[0].payload;
     return (
-        <div
-            className="rounded-xl px-4 py-3 shadow-2xl"
-            style={{
-                background: "#111318",
-                border: "1px solid rgba(255,255,255,0.1)",
-            }}
-        >
-            <p className="text-[11px] mb-1" style={{ color: "#64748b" }}>{label}</p>
-            <p className="text-base font-bold" style={{ color: scoreColor(val) }}>{val}%</p>
+        <div style={{
+            background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 10, padding: "10px 14px",
+        }}>
+            <p style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>Score: {score}%</p>
+            <p style={{ color: "#666", fontSize: 12, marginTop: 2 }}>{fullDate}</p>
         </div>
     );
 }
 
-/* ─────────────────────────────────────────────
-   SCORE RING
-───────────────────────────────────────────── */
-function ScoreRing({ value }: { value: number }) {
-    const r = 32;
-    const circ = 2 * Math.PI * r;
-    const dash = (value / 100) * circ;
-    const col = scoreColor(value);
-
+/* ══════════════════════════════════════════
+   STEP INDICATOR
+══════════════════════════════════════════ */
+function Steps({ current }: { current: 1 | 2 }) {
     return (
-        <div className="relative inline-flex items-center justify-center" style={{ width: 80, height: 80 }}>
-            <svg width={80} height={80} style={{ transform: "rotate(-90deg)" }}>
-                <circle cx={40} cy={40} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={5} />
-                <circle
-                    cx={40} cy={40} r={r} fill="none"
-                    stroke={col} strokeWidth={5}
-                    strokeDasharray={`${dash} ${circ}`}
-                    strokeLinecap="round"
-                />
-            </svg>
-            <span className="absolute text-base font-extrabold text-white">{value}%</span>
-        </div>
-    );
-}
-
-/* ─────────────────────────────────────────────
-   STEP DOTS
-───────────────────────────────────────────── */
-function StepDots({ step }: { step: 1 | 2 }) {
-    return (
-        <div className="flex items-center gap-1.5">
-            {[1, 2].map((s) => (
-                <div
-                    key={s}
-                    className="h-1.5 rounded-full transition-all duration-300"
-                    style={{
-                        width: s === step ? 20 : 6,
-                        background: s <= step
-                            ? "rgba(99,102,241,0.9)"
-                            : "rgba(255,255,255,0.15)",
-                    }}
-                />
+        <div className="flex items-center gap-1.5 mb-6">
+            {[1, 2].map(s => (
+                <div key={s}
+                    className="h-1 rounded-full transition-all duration-300"
+                    style={{ width: s === current ? 24 : 6, background: s <= current ? "#fff" : "rgba(255,255,255,0.15)" }} />
             ))}
         </div>
     );
 }
 
-/* ─────────────────────────────────────────────
+/* ══════════════════════════════════════════
    QUIZ CONFIG DIALOG
-───────────────────────────────────────────── */
-function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+══════════════════════════════════════════ */
+function QuizConfigDialog({
+    open, onClose, onStart,
+}: {
+    open: boolean;
+    onClose: () => void;
+    onStart: (topic: string, level: string, count: number) => Promise<void>;
+}) {
     const [step, setStep] = useState<1 | 2>(1);
     const [topic, setTopic] = useState("");
     const [level, setLevel] = useState("");
     const [count, setCount] = useState(10);
+    const [loading, setLoading] = useState(false);
 
+    function reset() { setStep(1); setTopic(""); setLevel(""); setCount(10); setLoading(false); onClose(); }
     const ready = topic !== "" && level !== "";
 
-    function reset() {
-        setStep(1); setTopic(""); setLevel(""); setCount(10);
-        onClose();
+    async function handleStart() {
+        setLoading(true);
+        await onStart(topic, level, count);
+        setLoading(false);
+        reset();
     }
 
     return (
-        <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); }}>
+        <Dialog open={open} onOpenChange={v => { if (!v) reset(); }}>
             <DialogContent
-                className="max-w-[440px] gap-0 p-0 border-0 overflow-hidden shadow-2xl"
-                style={{ background: "#0c0e15" }}
+                className="max-w-[480px] p-0 overflow-hidden border-none"
+                style={{ background: "transparent" }}
             >
-                {/* Gradient top bar */}
-                <div className="h-[3px]" style={{ background: "linear-gradient(90deg, #4f46e5, #06b6d4, #22c55e)" }} />
+                <div className="rounded-[2.5rem] bg-indigo-950/20 border border-white/10 backdrop-blur-3xl p-10 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+                    style={{ background: "linear-gradient(145deg, rgba(20,22,32,0.9), rgba(10,11,16,1))" }}>
+                    <Steps current={step} />
 
-                <div className="p-8">
-                    {/* ── STEP 1 ── */}
                     {step === 1 && (
                         <>
-                            <div className="flex items-start justify-between mb-6">
-                                <div>
-                                    <DialogTitle className="text-xl font-bold tracking-tight text-white mb-1">
-                                        Configure Quiz
-                                    </DialogTitle>
-                                    <DialogDescription style={{ color: "#475569" }}>
-                                        Choose topic, difficulty, and question count.
-                                    </DialogDescription>
-                                </div>
-                                <StepDots step={1} />
-                            </div>
+                            <DialogTitle className="text-2xl font-black text-white tracking-tight mb-1">
+                                Configure Quiz
+                            </DialogTitle>
+                            <DialogDescription className="text-sm mb-6 font-medium text-slate-400">
+                                Choose topic, difficulty, and question count.
+                            </DialogDescription>
 
-                            <div className="space-y-6">
+                            <div className="space-y-5">
                                 {/* Topic */}
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold uppercase tracking-[0.08em] block" style={{ color: "#475569" }}>
-                                        Topic
-                                    </label>
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#444" }}>Topic</p>
                                     <Select value={topic} onValueChange={setTopic}>
                                         <SelectTrigger
-                                            className="h-11 rounded-xl border-0 text-sm font-medium focus:ring-1 focus:ring-indigo-500/50"
-                                            style={{ background: "rgba(255,255,255,0.05)", color: topic ? "#f1f5f9" : "#64748b" }}
+                                            className="h-11 rounded-xl text-sm border-0"
+                                            style={{ background: "rgba(255,255,255,0.06)", color: topic ? "#fff" : "#555" }}
                                         >
                                             <SelectValue placeholder="Select a topic" />
                                         </SelectTrigger>
                                         <SelectContent
-                                            className="rounded-xl border-0"
-                                            style={{ background: "#13151e", border: "1px solid rgba(255,255,255,0.09)" }}
+                                            style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
                                         >
-                                            {TOPICS.map((t) => (
-                                                <SelectItem
-                                                    key={t} value={t}
-                                                    className="text-sm font-medium cursor-pointer"
-                                                    style={{ color: "#cbd5e1" }}
-                                                >
-                                                    {t}
-                                                </SelectItem>
+                                            {TOPICS.map(t => (
+                                                <SelectItem key={t} value={t} className="text-sm" style={{ color: "#ccc" }}>{t}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 {/* Difficulty */}
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold uppercase tracking-[0.08em] block" style={{ color: "#475569" }}>
-                                        Difficulty
-                                    </label>
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#444" }}>Difficulty</p>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {DIFFICULTY_LEVELS.map((l) => {
+                                        {DIFFICULTY_LEVELS.map(l => {
                                             const active = level === l.value;
                                             return (
                                                 <button
                                                     key={l.value}
                                                     onClick={() => setLevel(l.value)}
-                                                    className="flex flex-col items-start gap-1 rounded-xl px-3.5 py-3 text-left transition-all duration-150"
+                                                    className="flex flex-col items-start rounded-xl px-3.5 py-3 text-left transition-all"
                                                     style={{
-                                                        background: active ? "rgba(99,102,241,0.16)" : "rgba(255,255,255,0.04)",
-                                                        border: `1.5px solid ${active ? "rgba(99,102,241,0.55)" : "rgba(255,255,255,0.07)"}`,
-                                                        boxShadow: active ? "0 0 16px rgba(99,102,241,0.12)" : "none",
+                                                        background: active ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
+                                                        border: `1px solid ${active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.07)"}`,
                                                     }}
                                                 >
-                                                    <span className="text-xs font-bold" style={{ color: active ? "#a5b4fc" : "#94a3b8" }}>
-                                                        {l.label}
-                                                    </span>
-                                                    <span className="text-[10px] leading-tight" style={{ color: "#475569" }}>
-                                                        {l.description}
-                                                    </span>
+                                                    <span className="text-xs font-bold" style={{ color: active ? "#fff" : "#666" }}>{l.label}</span>
+                                                    <span className="text-[10px] mt-0.5" style={{ color: "#444" }}>{l.sub}</span>
                                                 </button>
                                             );
                                         })}
@@ -242,22 +222,20 @@ function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => voi
                                 </div>
 
                                 {/* Count */}
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold uppercase tracking-[0.08em] block" style={{ color: "#475569" }}>
-                                        Number of Questions
-                                    </label>
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#444" }}>Questions</p>
                                     <div className="grid grid-cols-4 gap-2">
-                                        {QUESTION_COUNTS.map((c) => {
+                                        {QUESTION_COUNTS.map(c => {
                                             const active = count === c;
                                             return (
                                                 <button
                                                     key={c}
                                                     onClick={() => setCount(c)}
-                                                    className="h-12 rounded-xl text-sm font-bold transition-all duration-150"
+                                                    className="h-11 rounded-xl text-sm font-bold transition-all"
                                                     style={{
-                                                        background: active ? "rgba(99,102,241,0.16)" : "rgba(255,255,255,0.04)",
-                                                        border: `1.5px solid ${active ? "rgba(99,102,241,0.55)" : "rgba(255,255,255,0.07)"}`,
-                                                        color: active ? "#a5b4fc" : "#64748b",
+                                                        background: active ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
+                                                        border: `1px solid ${active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.07)"}`,
+                                                        color: active ? "#fff" : "#555",
                                                     }}
                                                 >
                                                     {c}
@@ -267,20 +245,20 @@ function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => voi
                                     </div>
                                 </div>
 
-                                {/* Live preview */}
+                                {/* Preview strip */}
                                 {ready && (
-                                    <div
-                                        className="flex items-center justify-between rounded-xl px-4 py-3"
-                                        style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)" }}
-                                    >
+                                    <div className="flex items-center justify-between rounded-xl px-4 py-3"
+                                        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                                         <span className="text-sm font-semibold text-white">{topic}</span>
                                         <div className="flex gap-2">
-                                            <Badge variant="outline" className="text-[11px] border-indigo-500/30 text-indigo-300">
-                                                {DIFFICULTY_LEVELS.find((l) => l.value === level)?.label}
-                                            </Badge>
-                                            <Badge variant="outline" className="text-[11px] border-indigo-500/30 text-indigo-300">
-                                                {count} Qs
-                                            </Badge>
+                                            <span className="text-xs px-2.5 py-1 rounded-lg font-semibold"
+                                                style={{ background: "rgba(255,255,255,0.08)", color: "#aaa" }}>
+                                                {DIFFICULTY_LEVELS.find(l => l.value === level)?.label}
+                                            </span>
+                                            <span className="text-xs px-2.5 py-1 rounded-lg font-semibold"
+                                                style={{ background: "rgba(255,255,255,0.08)", color: "#aaa" }}>
+                                                {count}Q
+                                            </span>
                                         </div>
                                     </div>
                                 )}
@@ -288,13 +266,8 @@ function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => voi
                                 <Button
                                     onClick={() => ready && setStep(2)}
                                     disabled={!ready}
-                                    className="w-full h-12 rounded-xl text-sm font-bold tracking-wide disabled:opacity-25"
-                                    style={{
-                                        background: ready ? "linear-gradient(135deg, #4338ca, #4f46e5)" : "rgba(255,255,255,0.06)",
-                                        color: ready ? "#fff" : "#475569",
-                                        boxShadow: ready ? "0 0 28px rgba(79,70,229,0.3)" : "none",
-                                        border: "none",
-                                    }}
+                                    className="w-full h-12 rounded-xl text-sm font-bold text-black disabled:opacity-25"
+                                    style={{ background: "#fff", border: "none" }}
                                 >
                                     Continue
                                 </Button>
@@ -302,65 +275,59 @@ function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => voi
                         </>
                     )}
 
-                    {/* ── STEP 2 ── */}
                     {step === 2 && (
                         <>
-                            <div className="flex items-start justify-between mb-6">
-                                <div>
-                                    <DialogTitle className="text-xl font-bold tracking-tight text-white mb-1">
-                                        Ready to begin
-                                    </DialogTitle>
-                                    <DialogDescription style={{ color: "#475569" }}>
-                                        Review your settings before starting.
-                                    </DialogDescription>
-                                </div>
-                                <StepDots step={2} />
-                            </div>
+                            <DialogTitle className="text-2xl font-black text-white tracking-tight mb-1">
+                                Ready to begin
+                            </DialogTitle>
+                            <DialogDescription className="text-sm mb-6" style={{ color: "#555" }}>
+                                Review your settings before starting.
+                            </DialogDescription>
 
                             <div className="space-y-4">
-                                {/* Summary table */}
-                                <div
-                                    className="rounded-2xl p-5 space-y-4"
-                                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
-                                >
+                                <div className="rounded-2xl overflow-hidden"
+                                    style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
                                     {[
                                         { label: "Topic", value: topic },
-                                        { label: "Difficulty", value: DIFFICULTY_LEVELS.find((l) => l.value === level)?.label ?? "" },
+                                        { label: "Difficulty", value: DIFFICULTY_LEVELS.find(l => l.value === level)?.label ?? "" },
                                         { label: "Questions", value: `${count} questions` },
                                         { label: "Est. time", value: `${count * 1.5}–${count * 2} min` },
                                     ].map((row, i, arr) => (
                                         <div key={row.label}>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs font-semibold uppercase tracking-[0.06em]" style={{ color: "#475569" }}>
+                                            <div className="flex items-center justify-between px-5 py-4">
+                                                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#444" }}>
                                                     {row.label}
                                                 </span>
                                                 <span className="text-sm font-bold text-white">{row.value}</span>
                                             </div>
-                                            {i < arr.length - 1 && (
-                                                <Separator className="mt-4" style={{ background: "rgba(255,255,255,0.06)" }} />
-                                            )}
+                                            {i < arr.length - 1 && <Separator style={{ background: "rgba(255,255,255,0.06)" }} />}
                                         </div>
                                     ))}
                                 </div>
 
                                 <Button
-                                    className="w-full h-12 rounded-xl text-sm font-bold"
-                                    style={{
-                                        background: "linear-gradient(135deg, #4338ca, #4f46e5)",
-                                        boxShadow: "0 0 32px rgba(79,70,229,0.3)",
-                                        border: "none",
-                                        color: "#fff",
-                                    }}
+                                    onClick={handleStart}
+                                    disabled={loading}
+                                    className="w-full h-12 rounded-xl text-sm font-bold text-black disabled:opacity-50 flex items-center justify-center gap-2"
+                                    style={{ background: "#fff", border: "none" }}
                                 >
-                                    Start Quiz
+                                    {loading ? (
+                                        <>
+                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                            </svg>
+                                            Generating Questions...
+                                        </>
+                                    ) : "Start Quiz"}
                                 </Button>
                                 <Button
                                     variant="ghost"
                                     onClick={() => setStep(1)}
                                     className="w-full h-11 rounded-xl text-sm font-medium"
-                                    style={{ color: "#475569" }}
+                                    style={{ color: "#444" }}
                                 >
-                                    Back to settings
+                                    Back
                                 </Button>
                             </div>
                         </>
@@ -371,431 +338,516 @@ function QuizConfigDialog({ open, onClose }: { open: boolean; onClose: () => voi
     );
 }
 
-/* ─────────────────────────────────────────────
-   KPI CARD
-───────────────────────────────────────────── */
-function KpiCard({ label, value, sub, accentColor }: {
-    label: string; value: string | number; sub: string; accentColor: string;
+/* ══════════════════════════════════════════
+   ACTIVE QUIZ OVERLAY
+══════════════════════════════════════════ */
+function ActiveQuizOverlay({
+    quiz,
+    onFinish,
+}: {
+    quiz: ActiveQuiz;
+    onFinish: (correct: number, total: number, duration: number) => void;
 }) {
-    return (
-        <Card
-            className="border-0 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
-        >
-            <CardContent className="p-5">
-                <div className="h-0.5 w-8 rounded-full mb-4" style={{ background: accentColor }} />
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em] mb-2" style={{ color: "#475569" }}>
-                    {label}
-                </p>
-                <p className="text-3xl font-extrabold tracking-tight" style={{ color: accentColor }}>
-                    {value}
-                </p>
-                <p className="text-[11px] mt-1.5" style={{ color: "#334155" }}>{sub}</p>
-            </CardContent>
-        </Card>
-    );
-}
+    const [current, setCurrent] = useState(0);
+    const [selected, setSelected] = useState<number | null>(null);
+    const [answers, setAnswers] = useState<(number | null)[]>(Array(quiz.questions.length).fill(null));
+    const [revealed, setRevealed] = useState(false);
+    const [startTime] = useState(Date.now());
 
-/* ─────────────────────────────────────────────
-   SESSION ROW
-───────────────────────────────────────────── */
-function SessionRow({ s }: { s: typeof PAST_SESSIONS[0] }) {
-    const pct = scorePct(s.correct, s.total);
-    const col = scoreColor(pct);
-    const grade = scoreLabel(pct);
-    const fmtDate = new Date(s.date).toLocaleDateString("en-GB", {
-        day: "2-digit", month: "short", year: "2-digit",
-    });
+    const q = quiz.questions[current];
+    const isLast = current === quiz.questions.length - 1;
+    const progress = Math.round(((current + (revealed ? 1 : 0)) / quiz.questions.length) * 100);
+
+    function choose(i: number) {
+        if (revealed) return;
+        setSelected(i);
+        setRevealed(true);
+        const updated = [...answers]; updated[current] = i; setAnswers(updated);
+    }
+
+    function next() {
+        if (isLast) {
+            const correct = answers.filter((a, i) => a === quiz.questions[i].correctIndex).length;
+            onFinish(correct, quiz.questions.length, Math.round((Date.now() - startTime) / 1000));
+        } else {
+            setCurrent(c => c + 1); setSelected(null); setRevealed(false);
+        }
+    }
 
     return (
-        <div
-            className="group grid grid-cols-12 items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-150"
-            style={{
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.07)",
-            }}
-            onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.borderColor = `${col}35`;
-                el.style.background = `${col}06`;
-                el.style.transform = "translateY(-1px)";
-                el.style.boxShadow = `0 6px 24px ${col}0c`;
-            }}
-            onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.borderColor = "rgba(255,255,255,0.07)";
-                el.style.background = "rgba(255,255,255,0.025)";
-                el.style.transform = "translateY(0)";
-                el.style.boxShadow = "none";
-            }}
-        >
-            <div className="col-span-4">
-                <p className="text-sm font-semibold text-white">{s.topic}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "#475569" }}>{s.level}</p>
-            </div>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start p-6 sm:p-10 overflow-y-auto no-scrollbar"
+            style={{ background: "#08090d" }}>
+            <div className="w-full max-w-2xl py-8 animate-fadeIn">
 
-            <div className="col-span-2">
-                <ScoreRing value={pct} />
-            </div>
+                {/* Header Info */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Active Quiz</p>
+                            <p className="text-sm font-bold text-white uppercase tracking-tight">{quiz.topic} · {quiz.level}</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Question</p>
+                        <p className="text-sm font-bold text-white">{current + 1} of {quiz.questions.length}</p>
+                    </div>
+                </div>
 
-            <div className="col-span-3">
-                <Progress
-                    value={pct}
-                    className="h-1.5 rounded-full"
-                    style={{ background: "rgba(255,255,255,0.07)" } as React.CSSProperties}
-                />
-                <p className="text-[11px] mt-1.5" style={{ color: "#334155" }}>
-                    {s.correct}/{s.total} correct
-                </p>
-            </div>
+                {/* Progress Bar */}
+                <div className="h-1.5 rounded-full mb-10 overflow-hidden bg-white/5 border border-white/5">
+                    <div className="h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(99,102,241,0.6)]"
+                        style={{ width: `${progress}%`, background: "linear-gradient(90deg, #4f46e5, #7c3aed)" }} />
+                </div>
 
-            <div className="col-span-2">
-                <Badge
-                    variant="outline"
-                    className="text-[11px] font-semibold border-0 rounded-lg px-2.5 py-1"
-                    style={{ background: `${col}18`, color: col }}
-                >
-                    {grade}
-                </Badge>
-                <p className="text-[11px] mt-1.5" style={{ color: "#334155" }}>{fmtDate}</p>
-            </div>
+                {/* Question Block */}
+                <div className="mb-6 p-6 rounded-2xl relative overflow-hidden"
+                    style={{ 
+                        background: "linear-gradient(145deg, rgba(30,32,44,0.4), rgba(15,16,22,0.6))", 
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                    }}>
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/30" />
+                    <p className="text-lg font-bold text-white leading-relaxed">{q.question}</p>
+                </div>
 
-            <div className="col-span-1 flex justify-end">
+                {/* Options Grid */}
+                <div className="space-y-3">
+                    {q.options.map((opt, i) => {
+                        const isCorrect = i === q.correctIndex;
+                        const isSelected = selected === i;
+                        let bg = "rgba(255,255,255,0.02)";
+                        let border = "rgba(255,255,255,0.06)";
+                        let color = "#6870a6";
+
+                        if (revealed) {
+                            if (isCorrect) { bg = "rgba(16,185,129,0.08)"; border = "rgba(16,185,129,0.3)"; color = "#6ee7b7"; }
+                            else if (isSelected) { bg = "rgba(239,68,68,0.08)"; border = "rgba(239,68,68,0.3)"; color = "#fca5a5"; }
+                        } else if (isSelected) {
+                            bg = "rgba(99,102,241,0.08)"; border = "rgba(99,102,241,0.4)"; color = "#fff";
+                        }
+
+                        return (
+                            <button key={i} onClick={() => choose(i)}
+                                className="w-full text-left rounded-xl px-5 py-3 text-sm transition-all duration-300 relative group"
+                                style={{ background: bg, border: `1px solid ${border}`, color }}>
+                                <div className="flex items-center gap-3">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all"
+                                        style={{ 
+                                            background: isSelected ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.03)",
+                                            color: isSelected ? "#fff" : "inherit",
+                                            border: "1px solid rgba(255,255,255,0.04)"
+                                        }}>
+                                        {String.fromCharCode(65 + i)}
+                                    </span>
+                                    <span className="font-semibold">{opt}</span>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Feedback Block */}
+                {revealed && (
+                    <div className="mt-8 rounded-2xl p-6 animate-slideDown shadow-[0_10px_30px_rgba(99,102,241,0.1)]"
+                        style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">Insight & Explanation</span>
+                        </div>
+                        <p className="text-sm font-bold leading-relaxed text-indigo-100">{q.explanation}</p>
+                    </div>
+                )}
+
                 <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-3 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity font-semibold"
-                    style={{ color: "#6366f1" }}
+                    onClick={next}
+                    disabled={!revealed}
+                    className="w-full mt-8 h-12 rounded-xl text-base font-bold text-white transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-30 shadow-xl"
+                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", border: "none" }}
                 >
-                    Retry
+                    {isLast ? "Complete Assessment" : "Proceed to Next ➔"}
                 </Button>
             </div>
         </div>
     );
 }
 
-/* ─────────────────────────────────────────────
-   HEADER
-───────────────────────────────────────────── */
-function Header() {
+/* ══════════════════════════════════════════
+   RESULT OVERLAY
+══════════════════════════════════════════ */
+function ResultOverlay({ topic, level, correct, total, onDone }: {
+    topic: string; level: string; correct: number; total: number; onDone: () => void;
+}) {
+    const score = pct(correct, total);
+    const col = scoreColor(score);
     return (
-        <header
-            className="sticky top-0 z-40 border-b"
-            style={{
-                background: "rgba(8,9,13,0.95)",
-                borderColor: "rgba(255,255,255,0.06)",
-                backdropFilter: "blur(20px)",
-            }}
-        >
-            <div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2.5">
-                    <div
-                        className="flex h-8 w-8 items-center justify-center rounded-lg"
-                        style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", boxShadow: "0 0 14px rgba(99,102,241,0.35)" }}
-                    >
-                        <Image src="/logo.svg" alt="AI MEET" width={18} height={18} />
-                    </div>
-                    <span
-                        className="text-base font-bold tracking-tight"
-                        style={{ background: "linear-gradient(135deg,#e0e7ff,#c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
-                    >
-                        AI MEET
-                    </span>
-                </Link>
-
-                <nav className="hidden md:flex items-center gap-0.5">
-                    {[
-                        { href: "/interview", label: "AI Interview" },
-                        { href: "/prep-hub", label: "Prep Hub" },
-                        { href: "/quiz", label: "Quiz", active: true },
-                        { href: "/questions", label: "Questions" },
-                    ].map((n) => (
-                        <Link
-                            key={n.href}
-                            href={n.href}
-                            className="px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150"
-                            style={{
-                                background: n.active ? "rgba(99,102,241,0.14)" : "transparent",
-                                color: n.active ? "#a5b4fc" : "#4b5563",
-                                border: n.active ? "1px solid rgba(99,102,241,0.25)" : "1px solid transparent",
-                            }}
-                        >
-                            {n.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <Link href="/profile">
-                    <div
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold cursor-pointer select-none"
-                        style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff" }}
-                    >
-                        U
-                    </div>
-                </Link>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-fadeIn"
+            style={{ background: "#08090d" }}>
+            <div className="w-full max-w-lg text-center p-8 rounded-3xl"
+                style={{ 
+                    background: "linear-gradient(145deg, rgba(20,22,32,0.8), rgba(10,11,16,0.9))", 
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: "0 60px 120px rgba(0,0,0,0.5)"
+                }}>
+                <div className="h-20 w-20 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-6 border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+                    <span className="text-3xl text-indigo-400">🏆</span>
+                </div>
+                <div className="text-6xl font-black mb-4 tracking-tighter" style={{ color: col }}>{score}%</div>
+                <h2 className="text-2xl font-extrabold text-white mb-2">{scoreGrade(score)}</h2>
+                <div className="flex items-center justify-center gap-3 mb-10">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#4f557d" }}>{topic} · {level}</span>
+                    <div className="h-1 w-1 rounded-full bg-indigo-500/50" />
+                    <span className="text-sm font-bold" style={{ color: col }}>{correct} / {total} Correct</span>
+                </div>
+                <Button
+                    onClick={onDone}
+                    className="w-full h-12 rounded-xl text-base font-bold text-white transition-all transform hover:scale-105 active:scale-95 shadow-xl"
+                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", border: "none" }}
+                >
+                    Back to Dashboard ➔
+                </Button>
             </div>
-        </header>
+        </div>
     );
 }
 
-/* ─────────────────────────────────────────────
-   FOOTER
-───────────────────────────────────────────── */
-function Footer() {
+/* ══════════════════════════════════════════
+   STAT CARD
+══════════════════════════════════════════ */
+function StatCard({ label, value, sub, icon, color }: {
+    label: string; value: string | number; sub: string; icon: React.ReactNode; color: string;
+}) {
     return (
-        <footer className="mt-20 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-            <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                    <div
-                        className="flex h-6 w-6 items-center justify-center rounded-md"
-                        style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)" }}
-                    >
-                        <Image src="/logo.svg" alt="AI MEET" width={12} height={12} />
-                    </div>
-                    <span className="text-sm font-bold text-white">AI MEET</span>
+        <Card style={{ 
+            background: "linear-gradient(145deg, rgba(25,27,38,0.7), rgba(15,16,22,0.8))", 
+            border: `1px solid ${color}50`, 
+            borderRadius: 28,
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+        }} className="transition-all hover:translate-y-[-4px] hover:bg-white/5">
+            <CardContent className="p-5 flex items-start justify-between">
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-slate-400">{label}</p>
+                    <p className="text-4xl font-black text-white tracking-tight">{value}</p>
+                    <p className="text-[11px] mt-2 font-bold text-indigo-300/60 transition-colors group-hover:text-indigo-300">{sub}</p>
                 </div>
-                <p className="text-xs" style={{ color: "#334155" }}>
-                    Adaptive quizzes powered by Gemini AI · Bhoj Reddy Engineering College
-                </p>
-                <div className="flex gap-5">
-                    {["/", "/interview", "/questions"].map((href) => (
-                        <Link key={href} href={href} className="text-xs transition-colors hover:text-slate-300" style={{ color: "#334155" }}>
-                            {href === "/" ? "Home" : href.slice(1).charAt(0).toUpperCase() + href.slice(2)}
-                        </Link>
-                    ))}
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                    style={{ background: `${color}15`, color: color, boxShadow: `0 0 15px ${color}20` }}>
+                    {icon}
                 </div>
-            </div>
-        </footer>
+            </CardContent>
+        </Card>
     );
 }
 
-/* ─────────────────────────────────────────────
-   PAGE
-───────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   QUIZ HISTORY CARD
+══════════════════════════════════════════ */
+function QuizCard({ session, index }: { session: QuizSession; index: number }) {
+    const col = scoreColor(session.score);
+    return (
+        <Card style={{ 
+            background: "rgba(25,27,38,0.4)", 
+            border: "1px solid rgba(255,255,255,0.05)", 
+            borderRadius: 20,
+            backdropFilter: "blur(10px)"
+        }} className="transition-all hover:bg-white/5 group">
+            <CardContent className="p-6 flex items-center justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="h-10 w-10 rounded-xl flex items-center justify-center text-xl bg-white/10 border border-white/20">📄</div>
+                        <div>
+                            <h3 className="text-lg font-black text-white">Quiz #{index}</h3>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-[#94a3b8]">{fmtDateTime(session.createdAt)}</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 border-indigo-500/20 text-indigo-400">
+                            {session.topic}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-white/10 border-white/20 text-slate-300">
+                            {session.level}
+                        </Badge>
+                    </div>
+                </div>
+
+                <div className="text-right">
+                    <p className="text-3xl font-black mb-1" style={{ color: col }}>{session.score.toFixed(0)}%</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Accuracy</p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+/* ══════════════════════════════════════════
+   PAGE SKELETON
+══════════════════════════════════════════ */
+function PageSkeleton() {
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="h-32 rounded-2xl animate-pulse"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }} />
+                ))}
+            </div>
+            <div className="h-80 rounded-2xl animate-pulse"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }} />
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════════
+   SVG ICONS (inline, no deps)
+══════════════════════════════════════════ */
+const TrophyIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M6 9H4a2 2 0 01-2-2V5h4M18 9h2a2 2 0 002-2V5h-4M12 17v4M8 21h8M12 3v14" />
+        <path d="M6 3h12v6a6 6 0 01-12 0V3z" />
+    </svg>
+);
+const TargetIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+    </svg>
+);
+const ClockIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+);
+
+/* ══════════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════════ */
 export default function QuizPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null);
+    const [resultData, setResultData] = useState<{ topic: string; level: string; correct: number; total: number } | null>(null);
 
-    const avg = Math.round(SCORE_HISTORY.reduce((s, i) => s + i.score, 0) / SCORE_HISTORY.length);
-    const best = Math.max(...SCORE_HISTORY.map((i) => i.score));
+    const [sessions, setSessions] = useState<QuizSession[]>([]);
+    const [stats, setStats] = useState<QuizStats | null>(null);
+    const [scoreHistory, setScoreHistory] = useState<ScorePoint[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    /* ── Fetch real data ── */
+    const fetchData = useCallback(async () => {
+        try {
+            // Parallel fetch stats and sessions
+            const [statsRes, sessionsRes] = await Promise.all([
+                fetch("/api/quiz/stats"),
+                fetch("/api/quiz/sessions")
+            ]);
+
+            if (statsRes.ok) {
+                const statsData = await statsRes.json();
+                setStats(statsData || null);
+            }
+
+            if (sessionsRes.ok) {
+                const sessionData = await sessionsRes.json();
+                setSessions(sessionData.sessions || []);
+                setScoreHistory(sessionData.scoreHistory || []);
+            }
+        } catch (e) {
+            console.error("Fetch data error:", e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchData(); }, [fetchData]);
+
+    /* ── Generate questions ── */
+    async function handleStartQuiz(topic: string, level: string, count: number) {
+        setLoading(true);
+        const res = await fetch("/api/quiz/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic, level, count }),
+        });
+        if (!res.ok) { alert("Failed to generate questions. Please try again."); setLoading(false); return; }
+        const { questions } = await res.json();
+        setActiveQuiz({ topic, level, questions });
+        setLoading(false);
+    }
+
+    /* ── Save result ── */
+    async function handleFinish(correct: number, total: number, duration: number) {
+        if (!activeQuiz) return;
+        setResultData({ topic: activeQuiz.topic, level: activeQuiz.level, correct, total });
+        setActiveQuiz(null);
+        try {
+            await fetch("/api/quiz/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    topic: activeQuiz.topic, level: activeQuiz.level,
+                    correct, total, durationSeconds: duration,
+                }),
+            });
+            await fetchData();
+        } catch (e) { console.error(e); }
+    }
+
+    const hasData = sessions.length > 0;
+
+    /* ── Y-axis domain with padding ── */
+    const yMin = scoreHistory.length
+        ? Math.max(0, Math.min(...scoreHistory.map(h => h.score)) - 15)
+        : 0;
 
     return (
-        <div style={{ background: "#08090d", minHeight: "100vh", color: "#fff" }}>
-            <Header />
-            <QuizConfigDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+        <div className="min-h-screen" style={{ color: "#fff" }}>
 
-            <main className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
+            {/* Overlays */}
+            {activeQuiz && <ActiveQuizOverlay quiz={activeQuiz} onFinish={handleFinish} />}
+            {resultData && <ResultOverlay {...resultData} onDone={() => { setResultData(null); }} />}
+            <QuizConfigDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onStart={handleStartQuiz} />
 
-                {/* ── Heading ── */}
-                <div className="mb-10">
-                    <div
-                        className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] mb-5"
-                        style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.22)", color: "#4ade80" }}
-                    >
-                        <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#22c55e" }} />
-                        Quiz Mode
+            <main className="mx-auto max-w-5xl px-6 pt-32 pb-20">
+
+                {/* ── Page heading ── */}
+                <div className="mb-12">
+                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold mb-4"
+                        style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", color: "#a5b4fc" }}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                        AI-Powered Skill Assessment
                     </div>
-                    <h1
-                        className="text-4xl font-extrabold tracking-tight mb-3"
-                        style={{
-                            background: "linear-gradient(140deg, #f8fafc 30%, #94a3b8 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                        }}
-                    >
-                        Knowledge Assessment
+                    <h1 className="text-5xl font-extrabold tracking-tight mb-3"
+                        style={{ background: "linear-gradient(135deg, #fff 30%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                        Knowledge Quiz
                     </h1>
-                    <p className="text-sm leading-relaxed max-w-lg" style={{ color: "#64748b" }}>
-                        Test your technical depth across 12 topics. Every session generates unique questions graded in real time.
+                    <p className="text-base" style={{ color: "#6870a6" }}>
+                        Test your technical depth and track your progress across different domains.
                     </p>
                 </div>
 
-                {/* ── KPIs ── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                    <KpiCard label="Average Score" value={`${avg}%`} sub="across all sessions" accentColor="#6366f1" />
-                    <KpiCard label="Personal Best" value={`${best}%`} sub="highest single session" accentColor="#22c55e" />
-                    <KpiCard label="Sessions" value={PAST_SESSIONS.length} sub="quizzes completed" accentColor="#06b6d4" />
-                </div>
-
-                {/* ── Hero CTA ── */}
-                <Card
-                    className="border-0 rounded-3xl mb-8 overflow-hidden relative"
-                    style={{
-                        background: "#0b0d14",
-                        border: "1px solid rgba(99,102,241,0.18)",
-                        boxShadow: "0 0 80px rgba(99,102,241,0.05)",
-                    }}
-                >
-                    {/* Dot-grid texture */}
-                    <div
-                        aria-hidden
-                        className="absolute inset-0 opacity-[0.025]"
-                        style={{
-                            backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-                            backgroundSize: "28px 28px",
-                        }}
-                    />
-                    {/* Glow orb */}
-                    <div
-                        aria-hidden
-                        className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none"
-                        style={{ background: "radial-gradient(circle, rgba(79,70,229,0.2), transparent 70%)", filter: "blur(60px)" }}
-                    />
-
-                    <CardContent className="relative z-10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-                        <div className="max-w-md">
-                            <Badge
-                                className="mb-5 text-[11px] font-semibold border-0"
-                                style={{ background: "rgba(99,102,241,0.15)", color: "#a5b4fc" }}
-                            >
-                                AI-Generated · Gemini Powered
-                            </Badge>
-                            <h2 className="text-2xl font-extrabold text-white mb-3 leading-tight tracking-tight">
-                                Start a new quiz session
-                            </h2>
-                            <p className="text-sm leading-relaxed" style={{ color: "#64748b" }}>
-                                Pick a topic and difficulty. Questions are freshly generated for every session —
-                                no two quizzes are the same. Results are scored and tracked automatically.
-                            </p>
-                            <div className="flex flex-wrap gap-2 mt-6">
-                                {["12 Topics", "3 Difficulty Levels", "Instant Scoring", "Progress Tracking"].map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold"
-                                        style={{
-                                            background: "rgba(255,255,255,0.04)",
-                                            border: "1px solid rgba(255,255,255,0.08)",
-                                            color: "#64748b",
-                                        }}
-                                    >
-                                        <span className="h-1 w-1 rounded-full" style={{ background: "#6366f1" }} />
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
+                {/* ── Stats cards ── */}
+                {loading ? <PageSkeleton /> : (
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                            <StatCard
+                                label="Average Score"
+                                value={hasData ? `${stats?.avgScore ?? 0}%` : "--"}
+                                sub="Across all assessments"
+                                icon={<TrophyIcon />}
+                                color="#8b5cf6"
+                            />
+                            <StatCard
+                                label="Total Questions"
+                                value={hasData ? (stats?.totalQuestions ?? 0) : "--"}
+                                sub="Total questions answered"
+                                icon={<TargetIcon />}
+                                color="#6366f1"
+                            />
+                            <StatCard
+                                label="Latest Score"
+                                value={hasData ? `${stats?.latestScore ?? 0}%` : "--"}
+                                sub="Most recent quiz result"
+                                icon={<ClockIcon />}
+                                color="#06b6d4"
+                            />
                         </div>
 
-                        <Button
-                            onClick={() => setDialogOpen(true)}
-                            size="lg"
-                            className="flex-shrink-0 h-14 px-10 rounded-2xl text-sm font-bold tracking-wide"
-                            style={{
-                                background: "linear-gradient(135deg, #4338ca, #4f46e5 60%, #6366f1)",
-                                boxShadow: "0 0 48px rgba(79,70,229,0.35)",
-                                color: "#fff",
-                                border: "none",
-                            }}
-                        >
-                            Configure Quiz
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                {/* ── Charts ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-                    {/* Area chart */}
-                    <Card
-                        className="lg:col-span-2 border-0 rounded-2xl"
-                        style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
-                    >
-                        <CardHeader className="pb-0 pt-6 px-6">
-                            <CardTitle className="text-sm font-bold text-white tracking-tight">Score Progression</CardTitle>
-                            <CardDescription style={{ color: "#475569" }}>Last 7 sessions</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-4 pb-4 px-2">
-                            <ResponsiveContainer width="100%" height={190}>
-                                <AreaChart data={SCORE_HISTORY} margin={{ top: 5, right: 16, left: -18, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="quizGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                    <XAxis dataKey="date" tick={{ fill: "#475569", fontSize: 11 }} axisLine={false} tickLine={false} />
-                                    <YAxis domain={[0, 100]} tick={{ fill: "#475569", fontSize: 11 }} axisLine={false} tickLine={false} />
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Area
-                                        type="monotone" dataKey="score"
-                                        stroke="#6366f1" strokeWidth={2}
-                                        fill="url(#quizGrad)"
-                                        dot={{ fill: "#6366f1", r: 3.5, strokeWidth: 0 }}
-                                        activeDot={{ r: 5.5, fill: "#a5b4fc", strokeWidth: 0 }}
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    {/* Metrics panel */}
-                    <Card
-                        className="border-0 rounded-2xl"
-                        style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
-                    >
-                        <CardHeader className="pt-6 px-6 pb-4">
-                            <CardTitle className="text-sm font-bold text-white tracking-tight">Performance</CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-6 pb-6 space-y-5">
-                            {[
-                                { label: "Score improvement", value: "+30%", sub: "since first session", color: "#22c55e" },
-                                { label: "Consistency streak", value: "4", sub: "sessions above 70%", color: "#6366f1" },
-                                { label: "Topics covered", value: "6/12", sub: "categories attempted", color: "#06b6d4" },
-                            ].map((m) => (
-                                <div key={m.label} className="flex items-start justify-between">
+                        {/* ── Performance Trend ── */}
+                        <Card className="mb-10 overflow-hidden"
+                            style={{ 
+                                background: "linear-gradient(145deg, rgba(20,22,32,0.8), rgba(10,11,16,0.9))", 
+                                border: "1px solid rgba(99,102,241,0.2)", 
+                                borderRadius: 32,
+                                boxShadow: "0 40px 80px rgba(0,0,0,0.4)"
+                            }}>
+                            <CardContent className="p-7">
+                                <div className="flex items-center justify-between mb-8">
                                     <div>
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "#475569" }}>
-                                            {m.label}
-                                        </p>
-                                        <p className="text-[11px] mt-0.5" style={{ color: "#334155" }}>{m.sub}</p>
+                                        <h2 className="text-3xl font-extrabold text-white">Performance Trend</h2>
+                                        <p className="text-sm mt-1" style={{ color: "#6870a6" }}>Track your progress over time</p>
                                     </div>
-                                    <span className="text-lg font-extrabold" style={{ color: m.color }}>{m.value}</span>
+                                    <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_12px_rgba(99,102,241,0.6)]" />
                                 </div>
-                            ))}
-                            <Separator style={{ background: "rgba(255,255,255,0.06)" }} />
-                            <Button
-                                onClick={() => setDialogOpen(true)}
-                                variant="outline"
-                                className="w-full h-10 rounded-xl text-xs font-bold border-0"
-                                style={{ background: "rgba(99,102,241,0.12)", color: "#a5b4fc" }}
-                            >
-                                New Session
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
 
-                {/* ── Session History ── */}
-                <section>
-                    <div className="flex items-center justify-between mb-5">
+                                {!hasData ? (
+                                    <div className="flex flex-col items-center justify-center rounded-2xl"
+                                        style={{ height: 300, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.08)" }}>
+                                        <div className="text-center p-8">
+                                            <div className="h-16 w-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 border border-white/20">📈</div>
+                                            <p className="text-sm font-bold text-white mb-2 uppercase tracking-wide">No score history yet</p>
+                                            <p className="text-xs mb-6 max-w-[200px] mx-auto text-slate-400 font-medium">Complete your first quiz to see your performance visualized.</p>
+                                            <Button onClick={() => setDialogOpen(true)}
+                                                className="h-11 px-8 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
+                                                style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", border: "none" }}>
+                                                Start New Quiz
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height={260}>
+                                        <LineChart data={scoreHistory} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                                            <XAxis
+                                                dataKey="date"
+                                                tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                                                axisLine={false} tickLine={false}
+                                            />
+                                            <YAxis
+                                                domain={[yMin, 100]}
+                                                tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                                                axisLine={false} tickLine={false}
+                                            />
+                                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }} />
+                                            <ReferenceLine y={75} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+                                            <Line
+                                                type="linear"
+                                                dataKey="score"
+                                                stroke="#fff"
+                                                strokeWidth={2}
+                                                dot={{ fill: "#fff", r: 4, strokeWidth: 0 }}
+                                                activeDot={{ r: 6, fill: "#fff", strokeWidth: 0 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* ── Recent Quizzes ── */}
                         <div>
-                            <h2 className="text-lg font-bold text-white tracking-tight">Session History</h2>
-                            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
-                                All completed quiz sessions with scores and grades
-                            </p>
+                            <div className="flex items-center justify-between mb-5">
+                                <div>
+                                    <h2 className="text-3xl font-extrabold text-white">Recent Assessments</h2>
+                                    <p className="text-sm mt-1" style={{ color: "#6870a6" }}>Review your past performance history</p>
+                                </div>
+                                <Button
+                                    onClick={() => setDialogOpen(true)}
+                                    className="h-12 px-8 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-xl"
+                                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", border: "none", boxShadow: "0 10px 20px rgba(79,70,229,0.3)" }}
+                                >
+                                    Start New Quiz
+                                </Button>
+                            </div>
+
+                            {!hasData ? (
+                                <Card style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.07)", borderRadius: 14 }}>
+                                    <CardContent className="flex flex-col items-center justify-center py-16">
+                                        <p className="text-sm font-semibold mb-1" style={{ color: "#333" }}>No sessions yet</p>
+                                        <p className="text-xs" style={{ color: "#2a2a2a" }}>Start your first quiz to see results here</p>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="space-y-3">
+                                    {sessions.map((s, i) => (
+                                        <QuizCard key={s.id} session={s} index={sessions.length - i} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                        <Badge variant="outline" className="text-xs border-white/10 text-slate-500">
-                            {PAST_SESSIONS.length} sessions
-                        </Badge>
-                    </div>
-
-                    {/* Table header */}
-                    <div
-                        className="hidden md:grid grid-cols-12 gap-4 px-5 py-2 mb-1 text-[10px] font-bold uppercase tracking-[0.08em]"
-                        style={{ color: "#334155" }}
-                    >
-                        <span className="col-span-4">Topic</span>
-                        <span className="col-span-2">Score</span>
-                        <span className="col-span-3">Progress</span>
-                        <span className="col-span-2">Grade</span>
-                        <span className="col-span-1" />
-                    </div>
-
-                    <div className="space-y-2">
-                        {PAST_SESSIONS.map((s) => <SessionRow key={s.id} s={s} />)}
-                    </div>
-                </section>
-
+                    </>
+                )}
             </main>
-            <Footer />
         </div>
     );
 }

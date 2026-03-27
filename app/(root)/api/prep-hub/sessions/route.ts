@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, db } from "@/firebase/admin";
+import { auth, adminDb } from "@/firebase/admin";
 import { getCurrentUser } from "@/lib/actions/auth.action";
 
 /** GET /api/prep-hub/sessions  — returns all past sessions for the signed-in user */
@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest) {
             return NextResponse.json({ sessions: [] });
         }
 
-        const snapshot = await db
+        const snapshot = await adminDb
             .collection("users")
             .doc(user.id)
             .collection("prep_sessions")

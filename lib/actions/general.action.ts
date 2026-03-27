@@ -3,7 +3,7 @@
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 
-import { db } from "@/firebase/admin";
+import { adminDb } from "@/firebase/admin";
 import { feedbackSchema } from "@/constants";
 
 export async function createFeedback(params: CreateFeedbackParams) {
@@ -18,9 +18,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
       .join("");
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001", {
-        structuredOutputs: false,
-      }),
+      model: google("gemini-2.0-flash-001"),
       schema: feedbackSchema,
       prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
@@ -52,9 +50,9 @@ export async function createFeedback(params: CreateFeedbackParams) {
     let feedbackRef;
 
     if (feedbackId) {
-      feedbackRef = db.collection("feedback").doc(feedbackId);
+      feedbackRef = adminDb.collection("feedback").doc(feedbackId);
     } else {
-      feedbackRef = db.collection("feedback").doc();
+      feedbackRef = adminDb.collection("feedback").doc();
     }
 
     await feedbackRef.set(feedback);
@@ -67,7 +65,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
 }
 
 export async function getInterviewById(id: string): Promise<Interview | null> {
-  const interview = await db.collection("interviews").doc(id).get();
+  const interview = await adminDb.collection("interviews").doc(id).get();
 
   return interview.data() as Interview | null;
 }
@@ -77,7 +75,7 @@ export async function getFeedbackByInterviewId(
 ): Promise<Feedback | null> {
   const { interviewId, userId } = params;
 
-  const querySnapshot = await db
+  const querySnapshot = await adminDb
     .collection("feedback")
     .where("interviewId", "==", interviewId)
     .where("userId", "==", userId)
@@ -95,7 +93,7 @@ export async function getLatestInterviews(
 ): Promise<Interview[] | null> {
   const { userId, limit = 20 } = params;
 
-  const interviews = await db
+  const interviews = await adminDb
     .collection("interviews")
     .orderBy("createdAt", "desc")
     .where("finalized", "==", true)
@@ -112,7 +110,7 @@ export async function getLatestInterviews(
 export async function getInterviewsByUserId(
   userId: string
 ): Promise<Interview[] | null> {
-  const interviews = await db
+  const interviews = await adminDb
     .collection("interviews")
     .where("userId", "==", userId)
     .orderBy("createdAt", "desc")
@@ -122,4 +120,23 @@ export async function getInterviewsByUserId(
     id: doc.id,
     ...doc.data(),
   })) as Interview[];
+}
+
+export async function submitContact(params: ContactParams) {
+  const { name, email, message } = params;
+
+  try {
+    const contactRef = adminDb.collection("contacts").doc();
+    await contactRef.set({
+      name,
+      email,
+      message,
+      createdAt: new Date().toISOString(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error submitting contact:", error);
+    return { success: false, error: "Failed to submit message." };
+  }
 }

@@ -97,3 +97,9 @@ interface InterviewFormProps {
 interface TechIconProps {
   techStack: string[];
 }
+
+interface ContactParams {
+  name: string;
+  email: string;
+  message: string;
+}

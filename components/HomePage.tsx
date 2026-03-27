@@ -4,6 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { submitContact } from "@/lib/actions/general.action";
+import { toast } from "sonner";
+import { 
+    Zap, Palette, Server, Layers, Rocket, Brain, Smartphone, Users, 
+    Mic, BarChart3, Building2, BookOpen, Target, MessageSquare,
+    BarChart2, FolderKanban, Building, FileText
+} from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface NavProps {
@@ -12,14 +19,14 @@ interface NavProps {
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const INTERVIEW_CATEGORIES = [
-    { id: "fullstack", label: "Full Stack", icon: "⚡", color: "#6366f1", desc: "React, Node, DBs & system integration" },
-    { id: "frontend", label: "Frontend", icon: "🎨", color: "#8b5cf6", desc: "React, Vue, CSS, Web Performance" },
-    { id: "backend", label: "Backend", icon: "⚙️", color: "#3b82f6", desc: "APIs, databases, server architecture" },
-    { id: "system-design", label: "System Design", icon: "🏗️", color: "#06b6d4", desc: "Scalability, trade-offs, architecture" },
-    { id: "devops", label: "DevOps", icon: "🚀", color: "#10b981", desc: "CI/CD, Docker, Kubernetes, cloud" },
-    { id: "dsa", label: "DSA", icon: "🧩", color: "#f59e0b", desc: "Algorithms, data structures, complexity" },
-    { id: "android", label: "Android", icon: "📱", color: "#ef4444", desc: "Kotlin, Jetpack Compose, Android SDK" },
-    { id: "hr", label: "HR Round", icon: "🤝", color: "#ec4899", desc: "Behavioral, situational, culture fit" },
+    { id: "fullstack", label: "Full Stack", icon: Zap, color: "#6366f1", desc: "React, Node, DBs & system integration" },
+    { id: "frontend", label: "Frontend", icon: Palette, color: "#8b5cf6", desc: "React, Vue, CSS, Web Performance" },
+    { id: "backend", label: "Backend", icon: Server, color: "#3b82f6", desc: "APIs, databases, server architecture" },
+    { id: "system-design", label: "System Design", icon: Layers, color: "#06b6d4", desc: "Scalability, trade-offs, architecture" },
+    { id: "devops", label: "DevOps", icon: Rocket, color: "#10b981", desc: "CI/CD, Docker, Kubernetes, cloud" },
+    { id: "dsa", label: "DSA", icon: Brain, color: "#f59e0b", desc: "Algorithms, data structures, complexity" },
+    { id: "android", label: "Android", icon: Smartphone, color: "#ef4444", desc: "Kotlin, Jetpack Compose, Android SDK" },
+    { id: "hr", label: "HR Round", icon: Users, color: "#ec4899", desc: "Behavioral, situational, culture fit" },
 ];
 
 const COMPANIES = [
@@ -35,37 +42,37 @@ const COMPANIES = [
 
 const FEATURES = [
     {
-        icon: "🤖",
+        icon: Mic,
         title: "AI Mock Interviews",
         desc: "Realistic voice-based mock interviews conducted by an AI interviewer tailored to your role and stack.",
         color: "#6366f1",
     },
     {
-        icon: "📊",
+        icon: BarChart3,
         title: "Instant AI Feedback",
         desc: "Get scored on communication, technical depth, problem solving, and confidence — right after each session.",
         color: "#8b5cf6",
     },
     {
-        icon: "🏢",
+        icon: Building2,
         title: "Company-Specific Prep",
         desc: "Practice with curated question banks matched to Google, Amazon, Microsoft, and 50+ top companies.",
         color: "#3b82f6",
     },
     {
-        icon: "📚",
+        icon: BookOpen,
         title: "Prep Hub",
         desc: "Upload your resume & JD. Get a personalized Q&A set generated just for your application.",
         color: "#06b6d4",
     },
     {
-        icon: "🎯",
+        icon: Target,
         title: "Quiz & Analytics",
         desc: "Sharpen knowledge with randomized quizzes and track your progress over time with visual charts.",
         color: "#10b981",
     },
     {
-        icon: "💬",
+        icon: MessageSquare,
         title: "24/7 AI Chatbot",
         desc: "Always-on assistant for resume tips, interview guidance, and career advice — whenever you need it.",
         color: "#f59e0b",
@@ -103,278 +110,42 @@ const TESTIMONIALS = [
     },
 ];
 
-// ─── Navbar ──────────────────────────────────────────────────────────────────
-function Navbar({ user }: NavProps) {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const dropRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
-                setDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
-    const scrollTo = (id: string) => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-        setMobileOpen(false);
-    };
-
-    const APP_LINKS = [
-        { label: "AI Interview", href: "/interview" },
-        { label: "Prep Hub", href: "/prep-hub" },
-        { label: "Quiz", href: "/quiz" },
-        { label: "Interview Q's", href: "/questions" },
-    ];
-
-    return (
-        <nav
-            className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-            style={{
-                background: scrolled
-                    ? "rgba(8,9,13,0.92)"
-                    : "rgba(8,9,13,0.5)",
-                borderBottom: scrolled ? "1px solid rgba(99,102,241,0.15)" : "1px solid transparent",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-            }}
-        >
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="flex h-16 items-center justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2.5">
-                        <div
-                            className="flex items-center justify-center rounded-xl"
-                            style={{
-                                width: 36,
-                                height: 36,
-                                background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                boxShadow: "0 0 16px rgba(99,102,241,0.4)",
-                            }}
-                        >
-                            <Image src="/logo.svg" alt="logo" width={20} height={20} />
-                        </div>
-                        <span
-                            className="text-xl font-bold tracking-tight"
-                            style={{
-                                background: "linear-gradient(135deg, #e0e7ff, #c4b5fd)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                            }}
-                        >
-                            AI MEET
-                        </span>
-                    </Link>
-
-                    {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center gap-1">
-                        <button
-                            onClick={() => scrollTo("about")}
-                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                            style={{ color: "#6870a6" }}
-                        >
-                            About
-                        </button>
-                        <button
-                            onClick={() => scrollTo("contact")}
-                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                            style={{ color: "#6870a6" }}
-                        >
-                            Contact
-                        </button>
-
-                        {/* App Features Dropdown */}
-                        <div className="relative" ref={dropRef}>
-                            <button
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                                style={{ color: "#6870a6" }}
-                            >
-                                Features
-                                <svg
-                                    width="14" height="14" viewBox="0 0 14 14" fill="none"
-                                    className="transition-transform duration-200"
-                                    style={{ transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-                                >
-                                    <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                </svg>
-                            </button>
-
-                            {dropdownOpen && (
-                                <div
-                                    className="absolute top-full mt-2 right-0 w-52 rounded-2xl overflow-hidden animate-fadeIn"
-                                    style={{
-                                        background: "linear-gradient(145deg, rgba(36,38,51,0.98), rgba(8,9,13,0.99))",
-                                        border: "1px solid rgba(99,102,241,0.2)",
-                                        boxShadow: "0 20px 40px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.08)",
-                                    }}
-                                >
-                                    {APP_LINKS.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={user ? item.href : "/sign-in"}
-                                            onClick={() => setDropdownOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5"
-                                            style={{ color: "#d6e0ff" }}
-                                        >
-                                            <span
-                                                className="w-1.5 h-1.5 rounded-full"
-                                                style={{ background: "#6366f1", flexShrink: 0 }}
-                                            />
-                                            {item.label}
-                                            {!user && (
-                                                <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(99,102,241,0.2)", color: "#818cf8" }}>
-                                                    Login
-                                                </span>
-                                            )}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Auth area */}
-                    <div className="hidden md:flex items-center gap-3">
-                        {user ? (
-                            <>
-                                <div
-                                    className="flex items-center justify-center rounded-full text-sm font-bold"
-                                    style={{
-                                        width: 38,
-                                        height: 38,
-                                        background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                        color: "#fff",
-                                        boxShadow: "0 0 16px rgba(99,102,241,0.3)",
-                                    }}
-                                    title={user.name}
-                                >
-                                    {user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <Link href="/sign-out">
-                                    <button
-                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-white/10"
-                                        style={{ color: "#6870a6", border: "1px solid rgba(255,255,255,0.08)" }}
-                                    >
-                                        Logout
-                                    </button>
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link href="/sign-in">
-                                    <button
-                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-white/5"
-                                        style={{ color: "#d6e0ff" }}
-                                    >
-                                        Sign In
-                                    </button>
-                                </Link>
-                                <Link href="/sign-up">
-                                    <button
-                                        className="px-5 py-2 text-sm font-bold rounded-xl transition-all hover:opacity-90"
-                                        style={{
-                                            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                            color: "#fff",
-                                            boxShadow: "0 0 20px rgba(99,102,241,0.3)",
-                                        }}
-                                    >
-                                        Get Started
-                                    </button>
-                                </Link>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Mobile hamburger */}
-                    <button
-                        className="md:hidden p-2 rounded-lg"
-                        style={{ color: "#6870a6" }}
-                        onClick={() => setMobileOpen(!mobileOpen)}
-                    >
-                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                            {mobileOpen ? (
-                                <path d="M5 5l12 12M5 17L17 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                            ) : (
-                                <>
-                                    <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                                </>
-                            )}
-                        </svg>
-                    </button>
-                </div>
-
-                {/* Mobile menu */}
-                {mobileOpen && (
-                    <div
-                        className="md:hidden py-4 border-t animate-fadeIn"
-                        style={{ borderColor: "rgba(99,102,241,0.15)" }}
-                    >
-                        {["About", "Contact"].map((item) => (
-                            <button
-                                key={item}
-                                onClick={() => scrollTo(item.toLowerCase())}
-                                className="block w-full text-left px-4 py-3 text-sm font-medium"
-                                style={{ color: "#6870a6" }}
-                            >
-                                {item}
-                            </button>
-                        ))}
-                        <div className="h-px my-2" style={{ background: "rgba(99,102,241,0.1)" }} />
-                        {APP_LINKS.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={user ? item.href : "/sign-in"}
-                                className="block px-4 py-3 text-sm font-medium"
-                                style={{ color: "#d6e0ff" }}
-                                onClick={() => setMobileOpen(false)}
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
-                        <div className="h-px my-2" style={{ background: "rgba(99,102,241,0.1)" }} />
-                        {user ? (
-                            <Link href="/sign-out" className="block px-4 py-3 text-sm font-medium" style={{ color: "#f75353" }}>
-                                Logout
-                            </Link>
-                        ) : (
-                            <div className="flex gap-3 px-4 pt-2">
-                                <Link href="/sign-in" className="flex-1">
-                                    <button className="w-full py-2.5 text-sm font-semibold rounded-xl border" style={{ color: "#d6e0ff", borderColor: "rgba(99,102,241,0.3)" }}>
-                                        Sign In
-                                    </button>
-                                </Link>
-                                <Link href="/sign-up" className="flex-1">
-                                    <button className="w-full py-2.5 text-sm font-bold rounded-xl" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff" }}>
-                                        Get Started
-                                    </button>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        </nav>
-    );
-}
+// Navbar removed and moved to global Header.tsx
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export default function HomePage({ user }: NavProps) {
-    return (
-        <div className="min-h-screen" style={{ background: "#08090D", color: "#fff" }}>
-            <Navbar user={user} />
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
+    async function handleSubmit() {
+        if (!name || !email || !message) {
+            toast.error("Please fill in all fields.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const res = await submitContact({ name, email, message });
+            if (res.success) {
+                toast.success("Message sent successfully!");
+                setName("");
+                setEmail("");
+                setMessage("");
+            } else {
+                toast.error(res.error || "Failed to send message.");
+            }
+        } catch (error) {
+            toast.error("An error occurred. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return (
+        <div className="min-h-screen" style={{ color: "#fff" }}>
+            
             {/* ── HERO ──────────────────────────────────────────────────────── */}
             <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center">
                 {/* Background blobs */}
@@ -493,10 +264,10 @@ export default function HomePage({ user }: NavProps) {
                             }}
                         >
                             <div
-                                className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
+                                className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
                                 style={{ background: `${f.color}18`, border: `1px solid ${f.color}30` }}
                             >
-                                {f.icon}
+                                <f.icon className="h-6 w-6" style={{ color: f.color }} />
                             </div>
                             <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
                             <p className="text-sm leading-relaxed" style={{ color: "#6870a6" }}>{f.desc}</p>
@@ -534,14 +305,14 @@ export default function HomePage({ user }: NavProps) {
                                 }}
                             >
                                 <div
-                                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl"
+                                    className="flex h-14 w-14 items-center justify-center rounded-2xl"
                                     style={{
                                         background: `${cat.color}15`,
                                         border: `1px solid ${cat.color}30`,
                                         boxShadow: `0 0 20px ${cat.color}15`,
                                     }}
                                 >
-                                    {cat.icon}
+                                    <cat.icon className="h-7 w-7" style={{ color: cat.color }} />
                                 </div>
                                 <div>
                                     <p className="font-bold text-white text-sm">{cat.label}</p>
@@ -590,10 +361,10 @@ export default function HomePage({ user }: NavProps) {
                                 }}
                             >
                                 <div
-                                    className="flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden"
-                                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                                    className="flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden p-2"
+                                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
                                 >
-                                    <Image src={co.logo} alt={co.name} width={36} height={36} className="object-contain" />
+                                    <Image src={co.logo} alt={co.name} width={44} height={44} className="object-contain" />
                                 </div>
                                 <div className="text-center">
                                     <p className="font-bold text-white text-sm">{co.name}</p>
@@ -679,14 +450,14 @@ export default function HomePage({ user }: NavProps) {
                     </div>
                     <div className="flex flex-col gap-4 min-w-[220px]">
                         {[
-                            { label: "Voice AI interviews", icon: "🎙️" },
-                            { label: "Structured feedback", icon: "📊" },
-                            { label: "8 interview tracks", icon: "🗂️" },
-                            { label: "200+ company banks", icon: "🏢" },
-                            { label: "Resume Q&A generator", icon: "📄" },
+                            { label: "Voice AI interviews", icon: Mic },
+                            { label: "Structured feedback", icon: BarChart2 },
+                            { label: "8 interview tracks", icon: FolderKanban },
+                            { label: "200+ company banks", icon: Building },
+                            { label: "Resume Q&A generator", icon: FileText },
                         ].map((item) => (
                             <div key={item.label} className="flex items-center gap-3">
-                                <span className="text-xl">{item.icon}</span>
+                                <item.icon className="h-5 w-5" style={{ color: "#818cf8" }} />
                                 <span className="text-sm font-medium" style={{ color: "#d6e0ff" }}>{item.label}</span>
                             </div>
                         ))}
@@ -715,6 +486,8 @@ export default function HomePage({ user }: NavProps) {
                             <input
                                 type="text"
                                 placeholder="Your full name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 className="rounded-xl px-4 py-3 text-sm text-white outline-none transition-all focus:ring-2"
                                 style={{
                                     background: "rgba(255,255,255,0.04)",
@@ -730,6 +503,8 @@ export default function HomePage({ user }: NavProps) {
                             <input
                                 type="email"
                                 placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="rounded-xl px-4 py-3 text-sm text-white"
                                 style={{
                                     background: "rgba(255,255,255,0.04)",
@@ -745,6 +520,8 @@ export default function HomePage({ user }: NavProps) {
                             <textarea
                                 rows={4}
                                 placeholder="Tell us what you need..."
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
                                 className="rounded-xl px-4 py-3 text-sm text-white resize-none"
                                 style={{
                                     background: "rgba(255,255,255,0.04)",
@@ -756,13 +533,23 @@ export default function HomePage({ user }: NavProps) {
                             />
                         </div>
                         <button
-                            className="mt-2 w-full rounded-xl py-3.5 text-sm font-bold text-white transition-all hover:opacity-90"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="mt-2 w-full rounded-xl py-3.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
                             style={{
                                 background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
                                 boxShadow: "0 0 24px rgba(99,102,241,0.3)",
                             }}
                         >
-                            Send Message
+                            {isSubmitting ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    </svg>
+                                    Sending...
+                                </>
+                            ) : "Send Message"}
                         </button>
                     </div>
                 </div>
@@ -812,32 +599,6 @@ export default function HomePage({ user }: NavProps) {
                     </Link>
                 </div>
             </section>
-
-            {/* ── FOOTER ────────────────────────────────────────────────────── */}
-            <footer
-                className="border-t px-6 py-10"
-                style={{ borderColor: "rgba(99,102,241,0.1)" }}
-            >
-                <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="flex items-center justify-center rounded-lg"
-                            style={{ width: 28, height: 28, background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
-                        >
-                            <Image src="/logo.svg" alt="logo" width={16} height={16} />
-                        </div>
-                        <span className="font-bold text-white">AI MEET</span>
-                    </div>
-                    <p className="text-xs text-center" style={{ color: "#4f557d" }}>
-                        © {new Date().getFullYear()} AI MEET. Built for the next generation of developers.
-                    </p>
-                    <div className="flex gap-5 text-xs" style={{ color: "#4f557d" }}>
-                        <Link href="/privacy" className="hover:text-indigo-400 transition-colors">Privacy</Link>
-                        <Link href="/terms" className="hover:text-indigo-400 transition-colors">Terms</Link>
-                        <Link href="/sign-in" className="hover:text-indigo-400 transition-colors">Login</Link>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 }
