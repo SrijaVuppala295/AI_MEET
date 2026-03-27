@@ -77,14 +77,20 @@ export async function POST(req: NextRequest) {
             assistantId, status: "pending",
             createdAt: new Date().toISOString(),
         };
+        /* 5. Save to Firestore */
+        try {
+            console.log("[interview/start] Saving session to Firestore for user:", user.id);
+            await adminDb.collection("users").doc(user.id)
+                .collection("interview_sessions").doc(sessionId).set(session);
+            console.log("[interview/start] ✓ Session created successfully");
+        } catch (dbError: any) {
+            console.error("[interview/start] ❌ Failed to create session in Firestore:", dbError);
+            return NextResponse.json({ error: "Failed to initialize session in database." }, { status: 500 });
+        }
 
-        await adminDb.collection("users").doc(user.id)
-            .collection("interview_sessions").doc(sessionId).set(session);
-
-        console.log(`[interview/start] session=${sessionId} assistant=${assistantId}`);
-        return NextResponse.json({ sessionId });
+        return NextResponse.json({ success: true, sessionId });
     } catch (err: any) {
-        console.error("[interview/start]", err);
-        return NextResponse.json({ error: err.message ?? "Failed to create session." }, { status: 500 });
+        console.error("[interview/start] Critical error:", err);
+        return NextResponse.json({ error: err.message ?? "Failed to start interview." }, { status: 500 });
     }
 }

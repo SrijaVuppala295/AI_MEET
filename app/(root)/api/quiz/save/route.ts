@@ -79,15 +79,22 @@ export async function POST(req: NextRequest) {
             durationSeconds: Number(durationSeconds ?? 0),
             createdAt: new Date().toISOString(),
         };
+        /* 5. Store in Firestore */
+        try {
+            console.log("[quiz/save] Saving session to Firestore for user:", user.id);
+            await adminDb
+                .collection("users").doc(user.id)
+                .collection("quiz_sessions").doc(session.id)
+                .set(session);
+            console.log("[quiz/save] ✓ Session saved successfully");
+        } catch (dbError: any) {
+            console.error("[quiz/save] ❌ Failed to save to Firestore:", dbError);
+            return NextResponse.json({ error: "Failed to persist results to database." }, { status: 500 });
+        }
 
-        await adminDb
-            .collection("users").doc(user.id)
-            .collection("quiz_sessions").doc(session.id)
-            .set(session);
-
-        return NextResponse.json({ success: true, session });
+        return NextResponse.json({ success: true, sessionId: session.id });
     } catch (err: any) {
-        console.error("[quiz/save]", err);
-        return NextResponse.json({ error: err.message ?? "Failed to save session." }, { status: 500 });
+        console.error("[quiz/save] Critical error:", err);
+        return NextResponse.json({ error: err.message ?? "Server error" }, { status: 500 });
     }
 }

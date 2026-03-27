@@ -186,27 +186,29 @@ ${hasJD ? `JOB DESCRIPTION CONTENT:\n${jdContent}` : ""}
             })),
         };
 
-        /* 6. Optionally store in Firestore (if user is authenticated) */
+        /* 6. Store in Firestore (if user is authenticated) */
         try {
             const user = await getCurrentUser();
             if (user?.id) {
+                console.log("[prep-hub/analyze] Saving session to Firestore for user:", user.id);
                 await adminDb
                     .collection("users")
                     .doc(user.id)
                     .collection("prep_sessions")
                     .doc(prepResult.id)
                     .set(prepResult);
+                console.log("[prep-hub/analyze] ✓ Session saved successfully");
+            } else {
+                console.log("[prep-hub/analyze] ⚠ No authenticated user found, skipping Firestore save");
             }
-        } catch {
-            // Non-fatal — we still return the result
+        } catch (dbError: any) {
+            console.error("[prep-hub/analyze] ❌ Failed to save to Firestore:", dbError);
+            // We still return the results to the user even if DB save fails
         }
 
         return NextResponse.json(prepResult);
     } catch (err: any) {
-        console.error("prep-hub analyze error:", err);
-        return NextResponse.json(
-            { error: err.message ?? "Internal server error. Please try again." },
-            { status: 500 }
-        );
+        console.error("[prep-hub/analyze] Critical error:", err);
+        return NextResponse.json({ error: err.message ?? "Server error" }, { status: 500 });
     }
 }

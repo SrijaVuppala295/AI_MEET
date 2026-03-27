@@ -33,11 +33,19 @@ export async function POST(req: NextRequest) {
             ...(shouldUpdate ? { transcript: newTranscript } : {}),
         });
 
-        console.log(`[interview/end] session=${sessionId} transcript_lines=${newTranscript.length}`);
+        console.log(`[interview/end] ✓ session=${sessionId} transcript_lines=${newTranscript.length}`);
+
+        /* Trigger feedback generation as a fallback (async) */
+        const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        fetch(`${origin}/api/interview/feedback`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId }),
+        }).catch(e => console.error("[interview/end] Fallback feedback trigger failed:", e));
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        console.error("[interview/end]", err);
+        console.error("[interview/end] Critical error:", err);
         return NextResponse.json({ error: err.message ?? "Failed to end session." }, { status: 500 });
     }
 }

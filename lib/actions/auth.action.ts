@@ -120,17 +120,24 @@ export async function getCurrentUser(): Promise<User | null> {
     const cookieStore = await cookies();
 
     const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) return null;
+    if (!sessionCookie) {
+        console.log("[auth] No session cookie found");
+        return null;
+    }
 
     try {
         const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+        console.log("[auth] Session verified for uid:", decodedClaims.uid);
 
         const userRecord = await adminDb
             .collection("users")
             .doc(decodedClaims.uid)
             .get();
 
-        if (!userRecord.exists) return null;
+        if (!userRecord.exists) {
+            console.log("[auth] User document not found in Firestore for uid:", decodedClaims.uid);
+            return null;
+        }
 
         return {
             ...userRecord.data(),
@@ -138,7 +145,7 @@ export async function getCurrentUser(): Promise<User | null> {
         } as User;
     } catch (error) {
         // If the session cookie is invalid (e.g. wrong project id, expired), clear it.
-        console.log("Invalid session cookie detected. Clearing it...", error);
+        console.log("[auth] Invalid session cookie detected. Clearing it...", error);
         cookieStore.delete("session");
         return null;
     }

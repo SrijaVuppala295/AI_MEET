@@ -219,6 +219,7 @@ export default function InterviewCallPage() {
             await vapi.start(session.assistantId, {
                 variableValues: {
                     sessionId,
+                    userId: session.userId,
                     userName: session.userName ?? "Candidate",
                     interviewType: session.interviewType || session.company || "",
                     role: session.role ?? "",

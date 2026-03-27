@@ -36,6 +36,15 @@ function extractSessionId(message: any): string | null {
     );
 }
 
+function extractUserId(message: any): string | null {
+    return (
+        message?.call?.assistantOverrides?.variableValues?.userId ??
+        message?.call?.metadata?.userId ??
+        message?.assistant?.variableValues?.userId ??
+        null
+    );
+}
+
 function parseTranscript(artifact: any): { role: string; content: string }[] {
     // 1. Prefer structured messages array — most reliable
     const msgs: any[] = artifact?.messages ?? [];
@@ -66,7 +75,15 @@ function parseTranscript(artifact: any): { role: string; content: string }[] {
         .filter(Boolean) as { role: string; content: string }[];
 }
 
-async function findSessionDoc(sessionId: string) {
+async function getSessionDoc(sessionId: string, userId?: string | null) {
+    if (userId) {
+        const doc = await adminDb
+            .collection("users").doc(userId)
+            .collection("interview_sessions").doc(sessionId)
+            .get();
+        return doc.exists ? doc : null;
+    }
+    // Fallback to collection group searching (less efficient)
     const snap = await adminDb
         .collectionGroup("interview_sessions")
         .where("id", "==", sessionId)
@@ -101,30 +118,34 @@ export async function POST(req: NextRequest) {
         if (msgType === "status-update") {
             const status = message.status as string;
             const sessionId = extractSessionId(message);
+            const userId = extractUserId(message);
 
-            console.log(`[vapi/webhook] status-update → ${status} | session: ${sessionId}`);
+            console.log(`[vapi/webhook] status-update → ${status} | session: ${sessionId} | user: ${userId}`);
 
             if (!sessionId) return NextResponse.json({ received: true });
 
-            const doc = await findSessionDoc(sessionId);
+            const doc = await getSessionDoc(sessionId, userId);
             if (!doc) {
                 console.warn(`[vapi/webhook] session not found: ${sessionId}`);
                 return NextResponse.json({ received: true });
             }
 
             if (status === "in-progress") {
-                await doc.ref.update({
-                    vapiCallId: vapiCallId ?? doc.data().vapiCallId,
-                    status: "active",
-                    startedAt: new Date().toISOString(),
-                });
-                console.log(`[vapi/webhook] ✓ session ${sessionId} → active`);
+                const data = doc.data();
+                if (data) {
+                    await doc.ref.update({
+                        vapiCallId: vapiCallId ?? data.vapiCallId,
+                        status: "active",
+                        startedAt: new Date().toISOString(),
+                    });
+                    console.log(`[vapi/webhook] ✓ session ${sessionId} → active`);
+                }
             }
 
             if (status === "ended") {
-                const current = doc.data();
+                const data = doc.data();
                 // Don't overwrite if end-of-call-report already completed it
-                if (current.status !== "completed") {
+                if (data && data.status !== "completed") {
                     await doc.ref.update({
                         status: "completed",
                         endedAt: new Date().toISOString(),
@@ -144,27 +165,32 @@ export async function POST(req: NextRequest) {
         if (msgType === "end-of-call-report") {
             const artifact = message.artifact ?? message.call?.artifact ?? {};
             const sessionId = extractSessionId(message);
+            const userId = extractUserId(message);
             const transcript = parseTranscript(artifact);
             const vapiSummary = message.analysis?.summary ?? "";
 
-            console.log(`[vapi/webhook] end-of-call-report | session: ${sessionId} | ${transcript.length} lines`);
+            console.log(`[vapi/webhook] end-of-call-report | session: ${sessionId} | user: ${userId} | ${transcript.length} lines`);
 
             if (!sessionId) {
                 console.warn("[vapi/webhook] end-of-call-report missing sessionId — check variableValues in vapi.start()");
                 return NextResponse.json({ received: true });
             }
 
-            const doc = await findSessionDoc(sessionId);
+            const doc = await getSessionDoc(sessionId, userId);
             if (!doc) {
                 console.warn(`[vapi/webhook] session not found: ${sessionId}`);
                 return NextResponse.json({ received: true });
             }
 
             // Save transcript + mark completed
+            const data = doc.data();
+            if (!data) return NextResponse.json({ received: true });
+
+            const finalUserId = userId || data.userId;
             await doc.ref.update({
                 status: "completed",
                 endedAt: new Date().toISOString(),
-                vapiCallId: vapiCallId ?? doc.data().vapiCallId,
+                vapiCallId: vapiCallId ?? data.vapiCallId,
                 transcript,
                 vapiSummary,
                 rawTranscriptText: artifact.transcript ?? "",
@@ -177,7 +203,7 @@ export async function POST(req: NextRequest) {
             fetch(`${origin}/api/interview/feedback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "x-internal": "1" },
-                body: JSON.stringify({ sessionId, userId: doc.data().userId }),
+                body: JSON.stringify({ sessionId, userId: finalUserId }),
             }).catch(e => console.error("[vapi/webhook] feedback trigger failed:", e));
 
             return NextResponse.json({ received: true });
