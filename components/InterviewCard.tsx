@@ -11,12 +11,12 @@ import { getRandomInterviewCover } from "@/lib/utils";
 import DisplayTechIcons from "./DisplayTechIcons";
 
 const InterviewCard = ({
-                           interviewId,
-                           role,
-                           type,
-                           techstack,
-                           createdAt,
-                       }: InterviewCardProps) => {
+    interviewId,
+    role,
+    type,
+    techstack,
+    createdAt,
+}: InterviewCardProps) => {
     const [coverImage, setCoverImage] = useState<string | null>(null);
 
     // ✅ Generate random image ONLY on client
@@ -24,7 +24,7 @@ const InterviewCard = ({
         setCoverImage(getRandomInterviewCover());
     }, []);
 
-    const feedback: Feedback | null = null;
+    const [feedback, setFeedback] = useState<Feedback | null>(null);
     const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
     const formattedDate = dayjs(createdAt).format("MMM D, YYYY");
 

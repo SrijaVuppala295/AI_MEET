@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Interview } from "@/types";
 
 export const mappings = {
   "react.js": "react",
