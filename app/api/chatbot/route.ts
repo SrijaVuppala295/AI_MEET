@@ -1,7 +1,6 @@
 // app/api/chatbot/route.ts
 import { NextRequest, NextResponse } from "next/server";
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+import { getNextApiKeyServer } from "@/lib/key-rotator";
 
 const SYSTEM_PROMPT = `You are the AI MEET assistant — a helpful chatbot built into the AI MEET platform, an AI-powered mock interview preparation platform developed by students of Bhoj Reddy Engineering College for Women, Department of Information Technology.
 
@@ -19,8 +18,8 @@ Your role is to assist users with:
 - Data structures and algorithms (arrays, trees, graphs, DP, sorting, searching)
 
 Platform features you know about:
-- AI Interview: Voice-based mock interviews with Vapi AI. Choose role, type (Technical/Behavioral/Mixed), level (Entry/Mid/Senior), tech stack, and number of questions. Gemini AI provides detailed feedback with category scores.
-- Prep Hub: Upload your resume (PDF/TXT/DOC) and paste a job description. Gemini AI generates 8 tailored interview Q&A pairs and 6-8 resume improvement tips with priority levels.
+- AI Interview: Voice-based mock interviews with Vapi AI. Choose role, type (Technical/Behavioral/Mixed), level (Entry/Mid/Senior), tech stack, and number of questions. AI provides detailed feedback with category scores.
+- Prep Hub: Upload your resume (PDF/TXT/DOC) and paste a job description. AI generates 8 tailored interview Q&A pairs and 6-8 resume improvement tips with priority levels.
 - Quiz: AI-generated MCQ quizzes on 12 topics (JavaScript, TypeScript, React, Node.js, System Design, DSA, CSS/HTML, SQL, Git, Docker, AWS, HR). Tracks progress with charts.
 - Question Bank: Company-tagged LeetCode problems for 8 companies + category-wise questions with hints. Search and filter by difficulty.
 - Profile: View all past interviews, quiz history, and saved questions with performance analytics.
@@ -38,22 +37,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    // Build conversation history for Groq
-    const conversationHistory = history.slice(0, -1).map((h: { role: string; content: string }) => ({
-      role: h.role === "assistant" ? "assistant" : "user",
-      content: h.content,
-    }));
+    const groqKey = getNextApiKeyServer("groq");
+    if (!groqKey) {
+      console.error("No Groq API keys configured. Set GROQ_API_KEY_1, GROQ_API_KEY_2, etc. in .env");
+      return NextResponse.json({ error: "AI provider not configured" }, { status: 500 });
+    }
 
-    const lastMessage = message.trim();
+    // Build conversation history for Groq
+    const conversationHistory = Array.isArray(history)
+      ? history.map((h: { role: string; content: string }) => ({
+          role: h.role === "assistant" ? "assistant" : "user",
+          content: h.content,
+        }))
+      : [];
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${groqKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -62,7 +67,7 @@ export async function POST(req: NextRequest) {
           ...conversationHistory,
           {
             role: "user",
-            content: lastMessage,
+            content: message.trim(),
           },
         ],
         temperature: 0.7,
@@ -71,6 +76,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
+      const errText = await response.text();
+      console.error("Groq API error:", response.status, errText);
       throw new Error("Groq API error");
     }
 

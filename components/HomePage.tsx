@@ -445,7 +445,7 @@ export default function HomePage({ user }: NavProps) {
                             AI MEET was built to solve a real problem: interview preparation is broken. Scattered YouTube videos, random Leetcode grinds, and one shot at a mock interview with a friend — it's not enough.
                         </p>
                         <p className="text-base leading-relaxed" style={{ color: "#6870a6" }}>
-                            We built a platform powered by Gemini AI and Vapi voice agents to simulate real interviews — with real-time speech, instant scoring, and structured feedback. Whether you're targeting your first SDE role or cracking FAANG, AI MEET adapts to your level.
+                            We built a platform powered by Groq AI and Vapi voice agents to simulate real interviews — with real-time speech, instant scoring, and structured feedback. Whether you're targeting your first SDE role or cracking FAANG, AI MEET adapts to your level.
                         </p>
                     </div>
                     <div className="flex flex-col gap-4 min-w-[220px]">

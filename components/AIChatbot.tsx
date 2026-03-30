@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 /* ─────────────────────────────────────────────
    TYPES
@@ -136,7 +137,13 @@ function Bubble({ msg }: { msg: Message }) {
           wordBreak: "break-word",
         }}
       >
-        {msg.content}
+        {isUser ? (
+          msg.content
+        ) : (
+          <div className="chatbot-markdown">
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
+          </div>
+        )}
       </div>
 
       {isUser && (
@@ -251,6 +258,18 @@ export default function AIChatbot() {
           0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); }
           50%       { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
         }
+        .chatbot-markdown p { margin: 0 0 0.4em 0; }
+        .chatbot-markdown p:last-child { margin-bottom: 0; }
+        .chatbot-markdown strong { color: #fff; font-weight: 600; }
+        .chatbot-markdown ul, .chatbot-markdown ol { margin: 0.3em 0; padding-left: 1.2em; }
+        .chatbot-markdown li { margin-bottom: 0.15em; }
+        .chatbot-markdown code { background: rgba(99,102,241,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; color: #a5b4fc; }
+        .chatbot-markdown pre { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 0.4em 0; }
+        .chatbot-markdown pre code { background: none; padding: 0; color: #e2e8f0; }
+        .chatbot-markdown h1, .chatbot-markdown h2, .chatbot-markdown h3 { color: #fff; font-weight: 700; margin: 0.5em 0 0.25em; }
+        .chatbot-markdown h1 { font-size: 1.1em; }
+        .chatbot-markdown h2 { font-size: 1.05em; }
+        .chatbot-markdown h3 { font-size: 1em; }
       `}</style>
 
       {/* ── Chat Window ── */}
@@ -311,7 +330,7 @@ export default function AIChatbot() {
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-                  <span style={{ fontSize: 11, color: "#4ade80" }}>Online · Powered by Gemini</span>
+                  <span style={{ fontSize: 11, color: "#4ade80" }}>Online · Powered by Groq</span>
                 </div>
               </div>
             </div>
