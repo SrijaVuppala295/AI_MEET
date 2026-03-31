@@ -98,7 +98,8 @@ sequenceDiagram
     B->>DB: Create Entry (Status: Pending)
     B-->>F: Session Token
     F->>V: Connect Voice (Web SDK)
-    U<->>V: Real-time Conversation
+    U->>V: Real-time Conversation (Audio)
+    V->>U: Real-time Conversation (Audio)
     V->>B: Webhook: Call Ended (Transcript)
     B->>DB: Save Transcript
     B->>LLM: Analyze Transcript (Prompting)
