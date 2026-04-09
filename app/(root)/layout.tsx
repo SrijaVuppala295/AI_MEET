@@ -8,7 +8,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
     const user = await getCurrentUser();
 
     return (
-        <div className="flex flex-col min-h-screen" style={{ background: "#08090D", color: "#fff" }}>
+        <div className="flex flex-col min-h-screen" style={{ background: "#ffffff", color: "#000000" }}>
             <Header user={user} />
             <main className="flex-grow">
                 {children}

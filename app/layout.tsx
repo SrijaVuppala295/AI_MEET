@@ -3,6 +3,8 @@ import { Mona_Sans, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+import { Toaster } from "sonner";
+
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const monaSans = Mona_Sans({
@@ -21,9 +23,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={cn("dark", "font-sans", geist.variable)}>
+        <html lang="en" className={cn("font-sans", geist.variable)}>
             <body className={`${monaSans.className} antialiased pattern`}>
                 {children}
+                <Toaster position="top-center" expand={true} richColors />
             </body>
         </html>
     );

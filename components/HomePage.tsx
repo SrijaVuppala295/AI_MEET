@@ -144,7 +144,7 @@ export default function HomePage({ user }: NavProps) {
     }
 
     return (
-        <div className="min-h-screen" style={{ color: "#fff" }}>
+        <div className="min-h-screen" style={{ color: "#0f172a" }}>
             
             {/* ── HERO ──────────────────────────────────────────────────────── */}
             <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center">
@@ -160,8 +160,8 @@ export default function HomePage({ user }: NavProps) {
                     className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold"
                     style={{
                         background: "rgba(99,102,241,0.12)",
-                        border: "1px solid rgba(99,102,241,0.3)",
-                        color: "#a5b4fc",
+                        border: "2px solid rgba(99,102,241,0.4)",
+                        color: "#4338ca",
                     }}
                 >
                     <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -170,17 +170,13 @@ export default function HomePage({ user }: NavProps) {
 
                 {/* Headline */}
                 <h1
-                    className="max-w-4xl text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl lg:text-7xl"
-                    style={{
-                        background: "linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #818cf8 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                    }}
+                    className="max-w-4xl text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl lg:text-7xl text-slate-900"
+                    style={{}}
                 >
                     Ace Your Next Interview with AI
                 </h1>
 
-                <p className="mt-6 max-w-2xl text-lg leading-relaxed sm:text-xl" style={{ color: "#6870a6" }}>
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed sm:text-xl" style={{ color: "#334155" }}>
                     Practice real interview questions across 8 specializations and 200+ top companies.
                     Get instant AI feedback on every answer — and land the job you deserve.
                 </p>
@@ -192,7 +188,7 @@ export default function HomePage({ user }: NavProps) {
                             className="flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-bold transition-all hover:scale-105"
                             style={{
                                 background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                color: "#fff",
+                                color: "#ffffff",
                                 boxShadow: "0 0 40px rgba(99,102,241,0.35)",
                             }}
                         >
@@ -204,10 +200,10 @@ export default function HomePage({ user }: NavProps) {
                     </Link>
                     <button
                         onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
-                        className="flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-semibold transition-all hover:bg-white/5"
+                        className="flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-semibold transition-all hover:bg-black/5"
                         style={{
-                            color: "#d6e0ff",
-                            border: "1px solid rgba(99,102,241,0.25)",
+                            color: "#4f46e5",
+                            border: "2px solid rgba(99,102,241,0.35)",
                         }}
                     >
                         See How It Works
@@ -228,7 +224,7 @@ export default function HomePage({ user }: NavProps) {
                             >
                                 {stat.value}
                             </span>
-                            <span className="text-xs font-medium" style={{ color: "#4f557d" }}>{stat.label}</span>
+                            <span className="text-xs font-medium" style={{ color: "#1e293b" }}>{stat.label}</span>
                         </div>
                     ))}
                 </div>
@@ -238,8 +234,8 @@ export default function HomePage({ user }: NavProps) {
             <section id="features" className="px-6 py-24 mx-auto max-w-7xl">
                 <div className="text-center mb-14">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: "#6366f1" }}>Platform Features</p>
-                    <h2 className="text-4xl font-extrabold" style={{ color: "#fff" }}>Everything you need to prepare</h2>
-                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#6870a6" }}>
+                    <h2 className="text-4xl font-extrabold" style={{ color: "#0f172a" }}>Everything you need to prepare</h2>
+                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#334155" }}>
                         From AI voice interviews to personalized prep hubs — one platform for complete interview readiness.
                     </p>
                 </div>
@@ -250,17 +246,17 @@ export default function HomePage({ user }: NavProps) {
                             key={f.title}
                             className="group rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1"
                             style={{
-                                background: "linear-gradient(145deg, rgba(36,38,51,0.7), rgba(8,9,13,0.8))",
-                                border: "1px solid rgba(255,255,255,0.06)",
-                                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+                                background: "#ffffff",
+                                border: "2px solid rgba(0,0,0,0.15)",
+                                boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
                             }}
                             onMouseEnter={(e) => {
                                 (e.currentTarget as HTMLDivElement).style.border = `1px solid ${f.color}40`;
-                                (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 40px ${f.color}15`;
+                                (e.currentTarget as HTMLDivElement).style.boxShadow = `0 15px 50px ${f.color}15`;
                             }}
                             onMouseLeave={(e) => {
-                                (e.currentTarget as HTMLDivElement).style.border = "1px solid rgba(255,255,255,0.06)";
-                                (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.3)";
+                                (e.currentTarget as HTMLDivElement).style.border = "1px solid #fff";
+                                (e.currentTarget as HTMLDivElement).style.boxShadow = "0 10px 40px rgba(0,0,0,0.04)";
                             }}
                         >
                             <div
@@ -269,8 +265,8 @@ export default function HomePage({ user }: NavProps) {
                             >
                                 <f.icon className="h-6 w-6" style={{ color: f.color }} />
                             </div>
-                            <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
-                            <p className="text-sm leading-relaxed" style={{ color: "#6870a6" }}>{f.desc}</p>
+                            <h3 className="mb-2 text-lg font-bold text-slate-900">{f.title}</h3>
+                            <p className="text-sm leading-relaxed" style={{ color: "#334155" }}>{f.desc}</p>
                         </div>
                     ))}
                 </div>
@@ -280,8 +276,8 @@ export default function HomePage({ user }: NavProps) {
             <section id="categories" className="px-6 py-24 mx-auto max-w-7xl">
                 <div className="text-center mb-14">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: "#8b5cf6" }}>Interview Tracks</p>
-                    <h2 className="text-4xl font-extrabold text-white">Pick your specialization</h2>
-                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#6870a6" }}>
+                    <h2 className="text-4xl font-extrabold text-slate-900">Pick your specialization</h2>
+                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#334155" }}>
                         8 focused tracks — each with role-specific questions and AI tailored to that domain.
                     </p>
                 </div>
@@ -292,16 +288,17 @@ export default function HomePage({ user }: NavProps) {
                             <div
                                 className="group relative flex flex-col items-center gap-3 rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                                 style={{
-                                    background: "linear-gradient(145deg, rgba(36,38,51,0.7), rgba(8,9,13,0.8))",
-                                    border: "1px solid rgba(255,255,255,0.06)",
+                                    background: "#ffffff",
+                                    border: "2px solid rgba(0,0,0,0.15)",
+                                    boxShadow: "0 10px 30px rgba(0,0,0,0.02)",
                                 }}
                                 onMouseEnter={(e) => {
                                     (e.currentTarget as HTMLDivElement).style.border = `1px solid ${cat.color}50`;
-                                    (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 40px ${cat.color}20`;
+                                    (e.currentTarget as HTMLDivElement).style.boxShadow = `0 15px 45px ${cat.color}15`;
                                 }}
                                 onMouseLeave={(e) => {
-                                    (e.currentTarget as HTMLDivElement).style.border = "1px solid rgba(255,255,255,0.06)";
-                                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                                    (e.currentTarget as HTMLDivElement).style.border = "1px solid #fff";
+                                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 10px 30px rgba(0,0,0,0.04)";
                                 }}
                             >
                                 <div
@@ -315,8 +312,8 @@ export default function HomePage({ user }: NavProps) {
                                     <cat.icon className="h-7 w-7" style={{ color: cat.color }} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-white text-sm">{cat.label}</p>
-                                    <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#4f557d" }}>{cat.desc}</p>
+                                    <p className="font-bold text-slate-900 text-sm">{cat.label}</p>
+                                    <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#1e293b" }}>{cat.desc}</p>
                                 </div>
                                 <div
                                     className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -336,8 +333,8 @@ export default function HomePage({ user }: NavProps) {
             <section id="companies" className="px-6 py-24 mx-auto max-w-7xl">
                 <div className="text-center mb-14">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: "#06b6d4" }}>Company-Specific</p>
-                    <h2 className="text-4xl font-extrabold text-white">Prep for your dream company</h2>
-                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#6870a6" }}>
+                    <h2 className="text-4xl font-extrabold text-slate-900">Prep for your dream company</h2>
+                    <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: "#334155" }}>
                         Curated question banks for 200+ companies. Know exactly what to expect before you walk in.
                     </p>
                 </div>
@@ -348,27 +345,27 @@ export default function HomePage({ user }: NavProps) {
                             <div
                                 className="group flex flex-col items-center gap-4 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                                 style={{
-                                    background: "linear-gradient(145deg, rgba(36,38,51,0.7), rgba(8,9,13,0.8))",
-                                    border: "1px solid rgba(255,255,255,0.06)",
+                                    background: "#ffffff",
+                                    border: "2px solid rgba(0,0,0,0.15)",
                                 }}
                                 onMouseEnter={(e) => {
                                     (e.currentTarget as HTMLDivElement).style.border = `1px solid ${co.color}40`;
                                     (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 40px ${co.color}15`;
                                 }}
                                 onMouseLeave={(e) => {
-                                    (e.currentTarget as HTMLDivElement).style.border = "1px solid rgba(255,255,255,0.06)";
+                                    (e.currentTarget as HTMLDivElement).style.border = "1px solid rgba(0, 0, 0,0.06)";
                                     (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
                                 }}
                             >
                                 <div
                                     className="flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden p-2"
-                                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                                    style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0, 0, 0,0.12)" }}
                                 >
                                     <Image src={co.logo} alt={co.name} width={44} height={44} className="object-contain" />
                                 </div>
                                 <div className="text-center">
-                                    <p className="font-bold text-white text-sm">{co.name}</p>
-                                    <p className="text-[11px] mt-0.5" style={{ color: "#4f557d" }}>Interview Prep</p>
+                                    <p className="font-bold text-slate-900 text-sm">{co.name}</p>
+                                    <p className="text-[11px] mt-0.5" style={{ color: "#1e293b" }}>Interview Prep</p>
                                 </div>
                             </div>
                         </Link>
@@ -376,7 +373,7 @@ export default function HomePage({ user }: NavProps) {
                 </div>
 
                 <div className="mt-8 text-center">
-                    <p className="text-sm" style={{ color: "#4f557d" }}>
+                    <p className="text-sm" style={{ color: "#1e293b" }}>
                         + 190 more companies available after sign in
                     </p>
                 </div>
@@ -386,7 +383,7 @@ export default function HomePage({ user }: NavProps) {
             <section id="testimonials" className="px-6 py-24 mx-auto max-w-7xl">
                 <div className="text-center mb-14">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: "#ec4899" }}>Success Stories</p>
-                    <h2 className="text-4xl font-extrabold text-white">Developers who made it</h2>
+                    <h2 className="text-4xl font-extrabold text-slate-900">Developers who made it</h2>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -395,8 +392,8 @@ export default function HomePage({ user }: NavProps) {
                             key={t.name}
                             className="rounded-2xl p-6 flex flex-col gap-4"
                             style={{
-                                background: "linear-gradient(145deg, rgba(36,38,51,0.7), rgba(8,9,13,0.8))",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                background: "#ffffff",
+                                border: "2px solid rgba(0,0,0,0.15)",
                             }}
                         >
                             {/* Stars */}
@@ -408,18 +405,18 @@ export default function HomePage({ user }: NavProps) {
                                 ))}
                             </div>
 
-                            <p className="text-sm leading-relaxed" style={{ color: "#9ca3af" }}>"{t.text}"</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "#4b5563" }}>"{t.text}"</p>
 
                             <div className="flex items-center gap-3 mt-auto">
                                 <div
-                                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+                                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-slate-900"
                                     style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}88)` }}
                                 >
                                     {t.avatar}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-white">{t.name}</p>
-                                    <p className="text-xs" style={{ color: "#4f557d" }}>{t.role}</p>
+                                    <p className="text-sm font-semibold text-slate-900">{t.name}</p>
+                                    <p className="text-xs" style={{ color: "#1e293b" }}>{t.role}</p>
                                 </div>
                             </div>
                         </div>
@@ -432,19 +429,19 @@ export default function HomePage({ user }: NavProps) {
                 <div
                     className="rounded-3xl p-10 md:p-16 flex flex-col md:flex-row gap-12 items-center"
                     style={{
-                        background: "linear-gradient(145deg, rgba(79,70,229,0.1), rgba(124,58,237,0.08))",
-                        border: "1px solid rgba(99,102,241,0.2)",
+                        background: "#ffffff",
+                        border: "2px solid rgba(99,102,241,0.3)",
                     }}
                 >
                     <div className="flex-1">
                         <p className="text-xs font-bold uppercase tracking-[0.2em] mb-4" style={{ color: "#6366f1" }}>About AI MEET</p>
-                        <h2 className="text-4xl font-extrabold leading-tight text-white mb-6">
+                        <h2 className="text-4xl font-extrabold leading-tight text-slate-900 mb-6">
                             Built for developers,<br />by developers
                         </h2>
-                        <p className="text-base leading-relaxed mb-4" style={{ color: "#6870a6" }}>
+                        <p className="text-base leading-relaxed mb-4" style={{ color: "#334155" }}>
                             AI MEET was built to solve a real problem: interview preparation is broken. Scattered YouTube videos, random Leetcode grinds, and one shot at a mock interview with a friend — it's not enough.
                         </p>
-                        <p className="text-base leading-relaxed" style={{ color: "#6870a6" }}>
+                        <p className="text-base leading-relaxed" style={{ color: "#334155" }}>
                             We built a platform powered by Groq AI and Vapi voice agents to simulate real interviews — with real-time speech, instant scoring, and structured feedback. Whether you're targeting your first SDE role or cracking FAANG, AI MEET adapts to your level.
                         </p>
                     </div>
@@ -468,29 +465,29 @@ export default function HomePage({ user }: NavProps) {
             {/* ── CONTACT ───────────────────────────────────────────────────── */}
             <section id="contact" className="px-6 py-24 mx-auto max-w-3xl text-center">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] mb-4" style={{ color: "#10b981" }}>Contact Us</p>
-                <h2 className="text-4xl font-extrabold text-white mb-4">Have questions? We'd love to help.</h2>
-                <p className="text-base mb-10" style={{ color: "#6870a6" }}>
+                <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Have questions? We'd love to help.</h2>
+                <p className="text-base mb-10" style={{ color: "#334155" }}>
                     Reach out for partnership inquiries, feature requests, or just to say hi.
                 </p>
 
                 <div
                     className="rounded-3xl p-8 text-left"
                     style={{
-                        background: "linear-gradient(145deg, rgba(36,38,51,0.8), rgba(8,9,13,0.9))",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        background: "#ffffff",
+                        border: "2.5px solid rgba(0,0,0,0.15)",
                     }}
                 >
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#4f557d" }}>Name</label>
+                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#1e293b" }}>Name</label>
                             <input
                                 type="text"
                                 placeholder="Your full name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="rounded-xl px-4 py-3 text-sm text-white outline-none transition-all focus:ring-2"
+                                className="rounded-xl px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:ring-2"
                                 style={{
-                                    background: "rgba(255,255,255,0.04)",
+                                    background: "rgba(0, 0, 0,0.04)",
                                     border: "1px solid rgba(99,102,241,0.15)",
                                     outline: "none",
                                 }}
@@ -499,15 +496,15 @@ export default function HomePage({ user }: NavProps) {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#4f557d" }}>Email</label>
+                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#1e293b" }}>Email</label>
                             <input
                                 type="email"
                                 placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="rounded-xl px-4 py-3 text-sm text-white"
+                                className="rounded-xl px-4 py-3 text-sm text-slate-900"
                                 style={{
-                                    background: "rgba(255,255,255,0.04)",
+                                    background: "rgba(0, 0, 0,0.04)",
                                     border: "1px solid rgba(99,102,241,0.15)",
                                     outline: "none",
                                 }}
@@ -516,15 +513,15 @@ export default function HomePage({ user }: NavProps) {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#4f557d" }}>Message</label>
+                            <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#1e293b" }}>Message</label>
                             <textarea
                                 rows={4}
                                 placeholder="Tell us what you need..."
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                className="rounded-xl px-4 py-3 text-sm text-white resize-none"
+                                className="rounded-xl px-4 py-3 text-sm text-slate-900 resize-none"
                                 style={{
-                                    background: "rgba(255,255,255,0.04)",
+                                    background: "rgba(0, 0, 0,0.04)",
                                     border: "1px solid rgba(99,102,241,0.15)",
                                     outline: "none",
                                 }}
@@ -535,9 +532,10 @@ export default function HomePage({ user }: NavProps) {
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="mt-2 w-full rounded-xl py-3.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="mt-2 w-full rounded-xl py-3.5 text-sm font-bold text-slate-900 transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
                             style={{
                                 background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                                color: "#ffffff",
                                 boxShadow: "0 0 24px rgba(99,102,241,0.3)",
                             }}
                         >
@@ -554,7 +552,7 @@ export default function HomePage({ user }: NavProps) {
                     </div>
                 </div>
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-6" style={{ color: "#4f557d" }}>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-6" style={{ color: "#1e293b" }}>
                     <a href="mailto:support@aimeet.io" className="flex items-center gap-2 text-sm hover:text-indigo-400 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.3" />
@@ -576,21 +574,22 @@ export default function HomePage({ user }: NavProps) {
                 <div
                     className="relative overflow-hidden rounded-3xl p-12 text-center"
                     style={{
-                        background: "linear-gradient(135deg, #1e1b4b 0%, #2d1b69 50%, #1e1b4b 100%)",
+                        background: "linear-gradient(135deg, #f0fdf4 0%, #e0e7ff 50%, #f8fafc 100%)",
                         border: "1px solid rgba(99,102,241,0.3)",
                         boxShadow: "0 0 80px rgba(99,102,241,0.15)",
                     }}
                 >
                     <div aria-hidden className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(circle, #a5b4fc 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-                    <h2 className="text-4xl font-extrabold text-white mb-4">Ready to crack your dream job?</h2>
+                    <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Ready to crack your dream job?</h2>
                     <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: "#a5b4fc" }}>
                         Join thousands of developers using AI MEET to land offers at top companies.
                     </p>
                     <Link href={user ? "/interview" : "/sign-up"}>
                         <button
-                            className="rounded-2xl px-10 py-4 text-base font-bold text-white transition-all hover:scale-105"
+                            className="rounded-2xl px-10 py-4 text-base font-bold text-slate-900 transition-all hover:scale-105"
                             style={{
                                 background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                                color: "#ffffff",
                                 boxShadow: "0 0 40px rgba(99,102,241,0.4)",
                             }}
                         >

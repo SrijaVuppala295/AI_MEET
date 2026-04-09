@@ -66,8 +66,8 @@ function DiffBadge({ level }: { level: Diff }) {
     const s = DIFF_STYLE[level];
     return (
         <span
-            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider flex-shrink-0"
-            style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
+            className="inline-flex items-center rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest flex-shrink-0"
+            style={{ background: s.bg, color: s.color, border: `1px solid ${s.color}40`, boxShadow: `0 2px 10px ${s.color}15` }}
         >
             {level}
         </span>
@@ -77,8 +77,8 @@ function DiffBadge({ level }: { level: Diff }) {
 function TagPill({ label }: { label: string }) {
     return (
         <span
-            className="rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-tight"
-            style={{ background: "rgba(255,255,255,0.08)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.15)" }}
+            className="rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-tight"
+            style={{ background: "#ffffff", color: "#64748b", border: "1.5px solid rgba(0,0,0,0.08)" }}
         >
             {label}
         </span>
@@ -96,24 +96,24 @@ function CompanyRow({ q, idx }: { q: CompanyQ; idx: number }) {
             href={q.leetcode_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl px-6 py-4 transition-all duration-300 no-underline relative overflow-hidden"
+            className="group flex items-center gap-4 rounded-[1.5rem] px-6 py-5 transition-all duration-300 no-underline relative overflow-hidden"
             style={{ 
-                background: "rgba(25,27,38,0.4)", 
-                border: "1px solid rgba(255,255,255,0.05)",
-                backdropFilter: "blur(10px)"
+                background: "#ffffff", 
+                border: "2px solid rgba(0,0,0,0.15)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.02)"
             }}
         >
             <div className="absolute top-0 left-0 w-1 h-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: s.color }} />
             
-            <span className="w-8 text-[11px] font-black text-center flex-shrink-0 text-slate-600">
+            <span className="w-8 text-[11px] font-black text-center flex-shrink-0 text-slate-800">
                 {String(idx + 1).padStart(2, "0")}
             </span>
 
-            <span className="w-12 text-[10px] font-black font-mono flex-shrink-0 text-slate-500">
+            <span className="w-12 text-[10px] font-black font-mono flex-shrink-0 text-slate-800">
                 #{q.id}
             </span>
 
-            <span className="flex-1 text-sm font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
+            <span className="flex-1 text-sm font-bold text-slate-900 group-hover:text-indigo-300 transition-colors line-clamp-1">
                 {q.title}
             </span>
 
@@ -123,8 +123,8 @@ function CompanyRow({ q, idx }: { q: CompanyQ; idx: number }) {
 
             <DiffBadge level={q.difficulty} />
 
-            <div className="flex-shrink-0 opacity-20 group-hover:opacity-100 transition-all group-hover:translate-x-1"
-                style={{ color: "#f59e0b" }}>
+            <div className="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-all group-hover:translate-x-1"
+                style={{ color: "#d97706" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H19.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z" />
                 </svg>
@@ -136,18 +136,17 @@ function CompanyRow({ q, idx }: { q: CompanyQ; idx: number }) {
 function CategoryRow({ q, idx, accent }: { q: CategoryQ; idx: number; accent: string }) {
     const [open, setOpen] = useState(false);
     return (
-        <div className="rounded-2xl overflow-hidden transition-all duration-300"
+        <div className="rounded-[1.5rem] overflow-hidden transition-all duration-300"
             style={{ 
-                background: "rgba(25,27,38,0.4)", 
-                border: `1px solid ${open ? accent + "40" : "rgba(255,255,255,0.05)"}`,
-                backdropFilter: "blur(10px)",
-                boxShadow: open ? `0 10px 30px ${accent}10` : "none"
+                background: "#ffffff", 
+                border: `2px solid ${open ? accent : "rgba(0, 0, 0, 0.15)"}`,
+                boxShadow: open ? `0 20px 40px ${accent}10` : "none"
             }}>
-            <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-4 px-6 py-4.5 text-left transition-colors hover:bg-white/5">
-                <span className="w-8 text-[11px] font-black text-center flex-shrink-0 text-slate-600">
+            <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-4 px-6 py-4.5 text-left transition-colors hover:bg-black/5">
+                <span className="w-8 text-[11px] font-black text-center flex-shrink-0 text-slate-800">
                     {String(idx + 1).padStart(2, "0")}
                 </span>
-                <span className="flex-1 text-sm font-black text-white">{q.title}</span>
+                <span className="flex-1 text-sm font-black text-slate-900">{q.title}</span>
                 <div className="hidden md:flex gap-1.5 flex-wrap max-w-[180px]">
                     {q.tags.slice(0, 2).map(t => <TagPill key={t} label={t} />)}
                 </div>
@@ -157,7 +156,7 @@ function CategoryRow({ q, idx, accent }: { q: CategoryQ; idx: number; accent: st
             </button>
             {open && (
                 <div className="px-10 pb-8 animate-slideDown">
-                    <div className="h-px w-full bg-white/5 mb-6" />
+                    <div className="h-px w-full bg-black/5 mb-6" />
                     <div className="flex gap-4 p-6 rounded-2xl relative overflow-hidden" style={{ background: `${accent}08`, border: `1px solid ${accent}40` }}>
                         <div className="absolute top-0 left-0 w-1 h-full" style={{ background: accent }} />
                         <Lightbulb className="h-5 w-5" style={{ color: accent }} />
@@ -204,16 +203,15 @@ export default function QuestionsPage() {
                 {/* Header Section */}
                 <div className="text-center mb-16 animate-fadeIn">
                     <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest mb-6"
-                        style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.2)", color: "#a5b4fc" }}>
+                        style={{ background: "rgba(79,70,229,0.15)", border: "1px solid rgba(79,70,229,0.4)", color: "#4338ca" }}>
                         <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
                         Industry-Standard Challenges
                     </div>
-                    <h1 className="text-6xl font-black tracking-tight mb-4"
-                        style={{ background: "linear-gradient(135deg, #fff 30%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                        Interview Matrix
+                    <h1 className="text-7xl font-black tracking-[ -0.05em] mb-4 text-slate-900 leading-none">
+                        Interview <span style={{ background: "linear-gradient(135deg,#000,#4f46e5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Matrix</span>
                     </h1>
-                    <p className="text-lg max-w-2xl mx-auto font-medium text-indigo-300/60 leading-relaxed">
-                        Master technical interviews with curated questions from top-tier companies and essential engineering domains.
+                    <p className="text-xl max-w-2xl mx-auto font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+                        Master technical challenges from elite engineering teams.
                     </p>
                 </div>
 
@@ -224,38 +222,38 @@ export default function QuestionsPage() {
                     <aside className="space-y-8">
                         
                         {/* Mode Selector */}
-                        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/5">
-                            <button onClick={() => setMode("company")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode === "company" ? "bg-white text-black shadow-xl scale-[1.02]" : "text-slate-500 hover:text-white"}`}>
+                        <div className="flex p-2 rounded-2xl bg-white border-2 border-black/15 shadow-sm">
+                            <button onClick={() => setMode("company")} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${mode === "company" ? "bg-black text-white shadow-xl scale-[1.02]" : "text-slate-400 hover:text-slate-900"}`}>
                                 Companies
                             </button>
-                            <button onClick={() => setMode("category")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode === "category" ? "bg-white text-black shadow-xl scale-[1.02]" : "text-slate-500 hover:text-white"}`}>
+                            <button onClick={() => setMode("category")} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${mode === "category" ? "bg-black text-white shadow-xl scale-[1.02]" : "text-slate-400 hover:text-slate-900"}`}>
                                 Categories
                             </button>
                         </div>
 
                         {/* List Scroller */}
-                        <Card style={{ background: "rgba(25,27,38,0.4)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 24, backdropFilter: "blur(20px)" }}>
-                            <CardContent className="p-4 space-y-2 max-h-[500px] overflow-y-auto no-scrollbar">
+                        <Card style={{ background: "#ffffff", border: "2px solid rgba(0,0,0,0.15)", borderRadius: 32, boxShadow: "0 10px 40px rgba(0,0,0,0.04)" }}>
+                            <CardContent className="p-5 space-y-2 max-h-[500px] overflow-y-auto no-scrollbar">
                                 {mode === "company" ? (
                                     COMPANIES.map(co => (
                                         <button key={co.key} onClick={() => setCo(co.key)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${selectedCo === co.key ? "bg-white/10" : "hover:bg-white/5 opacity-40 hover:opacity-100"}`}>
-                                            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center p-1.5 overflow-hidden">
-                                                <Image src={co.logo} alt={co.label} width={20} height={20} className="object-contain" />
+                                            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${selectedCo === co.key ? "bg-slate-50 ring-2 ring-black/5" : "hover:bg-slate-50 opacity-50 hover:opacity-100"}`}>
+                                            <div className="h-9 w-9 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 border border-slate-100">
+                                                <Image src={co.logo} alt={co.label} width={24} height={24} className="object-contain" />
                                             </div>
-                                            <span className="text-xs font-bold text-white">{co.label}</span>
-                                            {selectedCo === co.key && <div className="ml-auto w-1 h-1 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]" />}
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-800">{co.label}</span>
+                                            {selectedCo === co.key && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-black shadow-[0_0_10px_rgba(0,0,0,0.3)]" />}
                                         </button>
                                     ))
                                 ) : (
                                     CATEGORIES.map(cat => (
                                         <button key={cat.key} onClick={() => setCat(cat.key)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${selectedCat === cat.key ? "bg-white/10" : "hover:bg-white/5 opacity-40 hover:opacity-100"}`}>
-                                            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center text-lg">
+                                            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${selectedCat === cat.key ? "bg-slate-50 ring-2 ring-black/5" : "hover:bg-slate-50 opacity-50 hover:opacity-100"}`}>
+                                            <div className="h-9 w-9 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl border border-slate-100" style={{ color: cat.accent }}>
                                                 {cat.icon}
                                             </div>
-                                            <span className="text-xs font-bold text-white">{cat.label}</span>
-                                            {selectedCat === cat.key && <div className="ml-auto w-1 h-1 rounded-full" style={{ background: cat.accent, boxShadow: `0 0 8px ${cat.accent}` }} />}
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-800">{cat.label}</span>
+                                            {selectedCat === cat.key && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: cat.accent, boxShadow: `0 0 10px ${cat.accent}` }} />}
                                         </button>
                                     ))
                                 )}
@@ -269,20 +267,21 @@ export default function QuestionsPage() {
                         {/* Filter Bar */}
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="relative flex-1 group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors h-4 w-4" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-slate-900 transition-colors h-4 w-4" />
                                 <Input 
-                                    placeholder="Search challenges by title or tags..." 
-                                    className="h-12 border-white/5 bg-white/5 pl-12 rounded-2xl text-sm font-medium focus-visible:ring-indigo-500/50"
+                                    placeholder="Search by title, stack, or meta..." 
+                                    className="h-14 border-0 shadow-none bg-white px-12 rounded-[1.5rem] text-sm font-bold text-slate-900 focus-visible:ring-0 transition-all placeholder:text-slate-400"
+                                    style={{ border: "2px solid rgba(0,0,0,0.15)", boxShadow: "0 10px 30px rgba(0,0,0,0.02)" }}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
                             </div>
-                            <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/5">
+                            <div className="flex p-2 rounded-2xl bg-white border-2 border-black/15 shadow-sm">
                                 {["All", "Easy", "Medium", "Hard"].map((d) => (
                                     <button 
                                         key={d} 
                                         onClick={() => setDiff(d as "All" | Diff)}
-                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${diff === d ? "bg-indigo-500 text-white shadow-lg" : "text-slate-500 hover:text-white"}`}
+                                        className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-500 ${diff === d ? "bg-black text-white shadow-xl scale-[1.05]" : "text-slate-400 hover:text-slate-900"}`}
                                     >
                                         {d}
                                     </button>
@@ -293,18 +292,18 @@ export default function QuestionsPage() {
                         {/* Results Grid */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between px-2 mb-2">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">
                                     Found {questions.length} Results
                                 </p>
-                                {search && <button onClick={() => setSearch("")} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300">Clear Search</button>}
+                                {search && <button onClick={() => setSearch("")} className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800">Clear Search</button>}
                             </div>
 
                             {questions.length === 0 ? (
-                                <div className="py-32 flex flex-col items-center justify-center rounded-[3rem] bg-white/2 border border-dashed border-white/5">
+                                <div className="py-32 flex flex-col items-center justify-center rounded-[3rem] bg-white/2 border border-dashed border-black/10">
                                     <div className="h-20 w-20 rounded-3xl bg-white/2 flex items-center justify-center mb-6">
                                         <Search className="h-10 w-10 text-slate-700" />
                                     </div>
-                                    <p className="text-lg font-black text-white mb-2 uppercase tracking-tight">No Challenges Found</p>
+                                    <p className="text-lg font-black text-slate-900 mb-2 uppercase tracking-tight">No Challenges Found</p>
                                     <p className="text-sm font-black text-slate-600 uppercase tracking-widest">Try adjusting your search or filters.</p>
                                 </div>
                             ) : (

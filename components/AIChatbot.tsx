@@ -115,7 +115,7 @@ function Bubble({ msg }: { msg: Message }) {
           }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
         </div>
       )}
@@ -125,14 +125,14 @@ function Bubble({ msg }: { msg: Message }) {
         style={{
           background: isUser
             ? "linear-gradient(135deg, #4338ca, #4f46e5)"
-            : "rgba(255,255,255,0.07)",
-          color: isUser ? "#fff" : "#e2e8f0",
+            : "rgba(0, 0, 0,0.07)",
+          color: isUser ? "#fff" : "#1e293b",
           borderTopRightRadius: isUser ? 6 : undefined,
           borderTopLeftRadius:  isUser ? undefined : 6,
           boxShadow: isUser
             ? "0 4px 16px rgba(79,70,229,0.25)"
             : "none",
-          border: isUser ? "none" : "1px solid rgba(255,255,255,0.08)",
+          border: isUser ? "none" : "1px solid rgba(0,0,0,0.03)",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }}
@@ -149,7 +149,7 @@ function Bubble({ msg }: { msg: Message }) {
       {isUser && (
         <div
           className="flex-shrink-0 ml-2 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
-          style={{ background: "rgba(255,255,255,0.1)", color: "#94a3b8" }}
+          style={{ background: "rgba(0, 0, 0,0.1)", color: "#1e293b" }}
         >
           U
         </div>
@@ -260,13 +260,13 @@ export default function AIChatbot() {
         }
         .chatbot-markdown p { margin: 0 0 0.4em 0; }
         .chatbot-markdown p:last-child { margin-bottom: 0; }
-        .chatbot-markdown strong { color: #fff; font-weight: 600; }
+        .chatbot-markdown strong { color: #0f172a; font-weight: 600; }
         .chatbot-markdown ul, .chatbot-markdown ol { margin: 0.3em 0; padding-left: 1.2em; }
         .chatbot-markdown li { margin-bottom: 0.15em; }
-        .chatbot-markdown code { background: rgba(99,102,241,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; color: #a5b4fc; }
-        .chatbot-markdown pre { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 0.4em 0; }
-        .chatbot-markdown pre code { background: none; padding: 0; color: #e2e8f0; }
-        .chatbot-markdown h1, .chatbot-markdown h2, .chatbot-markdown h3 { color: #fff; font-weight: 700; margin: 0.5em 0 0.25em; }
+        .chatbot-markdown code { background: rgba(99,102,241,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; color: #4f46e5; }
+        .chatbot-markdown pre { background: rgba(240,240,240,0.8); border: 1px solid rgba(0,0,0,0.03); border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 0.4em 0; }
+        .chatbot-markdown pre code { background: none; padding: 0; color: #0f172a; }
+        .chatbot-markdown h1, .chatbot-markdown h2, .chatbot-markdown h3 { color: #0f172a; font-weight: 700; margin: 0.5em 0 0.25em; }
         .chatbot-markdown h1 { font-size: 1.1em; }
         .chatbot-markdown h2 { font-size: 1.05em; }
         .chatbot-markdown h3 { font-size: 1em; }
@@ -283,10 +283,10 @@ export default function AIChatbot() {
             maxWidth: "calc(100vw - 48px)",
             height: 520,
             maxHeight: "calc(100vh - 120px)",
-            background: "#0d0f18",
+            background: "#ffffff",
             border: "1px solid rgba(99,102,241,0.25)",
             borderRadius: 20,
-            boxShadow: "0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0, 0, 0,0.04)",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -299,11 +299,11 @@ export default function AIChatbot() {
             style={{
               flexShrink: 0,
               padding: "14px 18px",
-              borderBottom: "1px solid rgba(255,255,255,0.07)",
+              borderBottom: "1px solid rgba(0, 0, 0,0.07)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              background: "rgba(255,255,255,0.025)",
+              background: "rgba(0, 0, 0,0.025)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -321,15 +321,15 @@ export default function AIChatbot() {
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.5 13c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M8 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.5 13c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9", margin: 0, lineHeight: 1.2 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>
                   AI MEET Assistant
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f8fafc", display: "inline-block" }} />
                   <span style={{ fontSize: 11, color: "#4ade80" }}>Online · Powered by Groq</span>
                 </div>
               </div>
@@ -342,8 +342,8 @@ export default function AIChatbot() {
                 height: 28,
                 borderRadius: 8,
                 border: "none",
-                background: "rgba(255,255,255,0.06)",
-                color: "#64748b",
+                background: "rgba(0, 0, 0,0.06)",
+                color: "#1e293b",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -351,11 +351,11 @@ export default function AIChatbot() {
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(0, 0, 0,0.12)";
                 (e.currentTarget as HTMLButtonElement).style.color = "#fff";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(0, 0, 0,0.06)";
                 (e.currentTarget as HTMLButtonElement).style.color = "#64748b";
               }}
             >
@@ -372,7 +372,7 @@ export default function AIChatbot() {
               overflowY: "auto",
               padding: "14px 14px 6px",
               scrollbarWidth: "thin",
-              scrollbarColor: "rgba(255,255,255,0.08) transparent",
+              scrollbarColor: "rgba(0,0,0,0.03) transparent",
             }}
           >
             {messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
@@ -393,13 +393,13 @@ export default function AIChatbot() {
                   }}
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
+                    <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" />
                   </svg>
                 </div>
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.07)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(0, 0, 0,0.07)",
+                    border: "1px solid rgba(0,0,0,0.03)",
                     borderRadius: "0 12px 12px 12px",
                   }}
                 >
@@ -425,7 +425,7 @@ export default function AIChatbot() {
                         borderRadius: 10,
                         border: "1px solid rgba(99,102,241,0.2)",
                         background: "rgba(99,102,241,0.06)",
-                        color: "#94a3b8",
+                        color: "#1e293b",
                         fontSize: 12,
                         cursor: "pointer",
                         transition: "all 0.15s",
@@ -459,8 +459,8 @@ export default function AIChatbot() {
             style={{
               flexShrink: 0,
               padding: "12px 14px",
-              borderTop: "1px solid rgba(255,255,255,0.07)",
-              background: "rgba(255,255,255,0.02)",
+              borderTop: "1px solid rgba(0, 0, 0,0.07)",
+              background: "rgba(0, 0, 0,0.02)",
             }}
           >
             <div
@@ -468,8 +468,8 @@ export default function AIChatbot() {
                 display: "flex",
                 alignItems: "flex-end",
                 gap: 8,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(0, 0, 0,0.05)",
+                border: "1px solid rgba(0, 0, 0,0.1)",
                 borderRadius: 14,
                 padding: "8px 10px 8px 14px",
                 transition: "border-color 0.15s",
@@ -478,7 +478,7 @@ export default function AIChatbot() {
                 (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(99,102,241,0.5)";
               }}
               onBlurCapture={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.1)";
+                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0, 0, 0,0.1)";
               }}
             >
               <textarea
@@ -493,7 +493,7 @@ export default function AIChatbot() {
                   background: "transparent",
                   border: "none",
                   outline: "none",
-                  color: "#e2e8f0",
+                  color: "#0f172a",
                   fontSize: 13,
                   lineHeight: 1.5,
                   resize: "none",
@@ -520,7 +520,7 @@ export default function AIChatbot() {
                   border: "none",
                   background: input.trim() && !loading
                     ? "linear-gradient(135deg, #4338ca, #4f46e5)"
-                    : "rgba(255,255,255,0.06)",
+                    : "rgba(0, 0, 0,0.06)",
                   color: input.trim() && !loading ? "#fff" : "#334155",
                   cursor: input.trim() && !loading ? "pointer" : "not-allowed",
                   display: "flex",
@@ -556,11 +556,11 @@ export default function AIChatbot() {
           border: "none",
           cursor: "pointer",
           background: open
-            ? "rgba(255,255,255,0.08)"
+            ? "rgba(0,0,0,0.03)"
             : "linear-gradient(135deg, #4f46e5, #7c3aed)",
           boxShadow: open
             ? "0 4px 24px rgba(0,0,0,0.4)"
-            : "0 4px 24px rgba(79,70,229,0.45), 0 0 0 1px rgba(255,255,255,0.08)",
+            : "0 4px 24px rgba(79,70,229,0.45), 0 0 0 1px rgba(0,0,0,0.03)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -586,7 +586,7 @@ export default function AIChatbot() {
               width: 14,
               height: 14,
               borderRadius: "50%",
-              background: "#22c55e",
+              background: "#f8fafc",
               border: "2px solid #08090d",
               animation: "chatPop 1s ease-in-out 1s",
             }}
@@ -596,14 +596,14 @@ export default function AIChatbot() {
         {open ? (
           /* X icon when open */
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M3 3l12 12M3 15l12-12" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+            <path d="M3 3l12 12M3 15l12-12" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
           </svg>
         ) : (
           /* Chat icon when closed */
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path
               d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7l-5 4V6a2 2 0 0 1 2-2z"
-              fill="rgba(255,255,255,0.9)"
+              fill="rgba(0, 0, 0,0.9)"
             />
             <circle cx="8" cy="11" r="1.2" fill="#4f46e5" />
             <circle cx="11" cy="11" r="1.2" fill="#4f46e5" />

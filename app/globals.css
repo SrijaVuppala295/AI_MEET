@@ -15,14 +15,14 @@
     --color-primary-100: #dddfff;
     --color-primary-200: #cac5fe;
 
-    --color-light-100: #d6e0ff;
-    --color-light-400: #6870a6;
-    --color-light-600: #4f557d;
-    --color-light-800: #24273a;
+    --color-light-100: #0f172a;
+    --color-light-400: #334155;
+    --color-light-600: #475569;
+    --color-light-800: #94a3b8;
 
-    --color-dark-100: #020408;
-    --color-dark-200: #27282f;
-    --color-dark-300: #242633;
+    --color-dark-100: #ffffff;
+    --color-dark-200: #f8fafc;
+    --color-dark-300: #f1f5f9;
 
     --font-mona-sans: "Mona Sans", sans-serif;
 
@@ -40,12 +40,12 @@
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    --muted-foreground: oklch(0.45 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
+    --border: rgba(0, 0, 0, 0.4);
+    --input: rgba(0, 0, 0, 0.08);
     --ring: oklch(0.708 0 0);
     --chart-1: oklch(0.809 0.105 251.813);
     --chart-2: oklch(0.623 0.214 259.815);
@@ -58,7 +58,7 @@
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.97 0 0);
     --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-border: oklch(1 0 0);
     --sidebar-ring: oklch(0.708 0 0);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -177,7 +177,7 @@
     }
 
     .btn-disconnect {
-        @apply inline-block px-7 py-3 text-sm font-bold leading-5 text-white transition-colors duration-150 bg-destructive-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-destructive-200 hover:bg-destructive-200 min-w-28;
+        @apply inline-block px-7 py-3 text-sm font-bold leading-5 text-white transition-colors duration-150 bg-red-600 border border-transparent rounded-full shadow-lg hover:bg-red-700 min-w-28;
     }
 
     .btn-upload {
@@ -253,7 +253,7 @@
             @apply dark-gradient rounded-2xl  min-h-12 px-5 py-3 flex items-center justify-center;
 
             p {
-                @apply text-lg text-center text-white;
+                @apply text-lg text-center text-slate-900;
             }
         }
     }
@@ -283,7 +283,7 @@
     }
 
     .interview-text {
-        @apply text-lg text-center text-white;
+        @apply text-lg text-center text-slate-900;
     }
 
     .progress {
@@ -304,11 +304,11 @@
 }
 
 @utility dark-gradient {
-    @apply bg-gradient-to-b from-[#1A1C20] to-[#08090D];
+    @apply bg-gradient-to-b from-slate-50 to-white;
 }
 
 @utility border-gradient {
-    @apply bg-gradient-to-b from-[#4B4D4F] to-[#4B4D4F33];
+    @apply border-2 border-black/20;
 }
 
 @utility pattern {
@@ -316,7 +316,7 @@
 }
 
 @utility blue-gradient-dark {
-    @apply bg-gradient-to-b from-[#171532] to-[#08090D];
+    @apply bg-gradient-to-b from-indigo-50 to-white;
 }
 
 @utility blue-gradient {

@@ -95,7 +95,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 router.push("/sign-in");
                 return;
             }
-            if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+            if (
+                error.code === "auth/user-not-found" || 
+                error.code === "auth/wrong-password" || 
+                error.code === "auth/invalid-credential"
+            ) {
                 toast.error("Invalid email or password.");
                 return;
             }
@@ -176,33 +180,14 @@ const AuthForm = ({ type }: { type: FormType }) => {
     }
 
     return (
-        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-dark-100">
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#ffffff]">
 
-            {/* ── Ambient glow blobs ── */}
             <div
                 aria-hidden
-                className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full"
+                className="pointer-events-none absolute inset-0 opacity-[0.02]"
                 style={{
-                    background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)",
-                    filter: "blur(40px)",
-                }}
-            />
-            <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-40 -right-32 h-[480px] w-[480px] rounded-full"
-                style={{
-                    background: "radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 70%)",
-                    filter: "blur(40px)",
-                }}
-            />
-
-            {/* ── Dot-grid pattern overlay ── */}
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-[0.04]"
-                style={{
-                    backgroundImage: "radial-gradient(circle, #a5b4fc 1px, transparent 1px)",
-                    backgroundSize: "28px 28px",
+                    backgroundImage: "radial-gradient(circle, #000 1px, transparent 1px)",
+                    backgroundSize: "32px 32px",
                 }}
             />
 
@@ -210,18 +195,18 @@ const AuthForm = ({ type }: { type: FormType }) => {
             <div
                 className="relative z-10 w-full max-w-[440px] mx-4"
                 style={{
-                    background: "linear-gradient(145deg, rgba(36,38,51,0.95) 0%, rgba(8,9,13,0.98) 100%)",
-                    border: "1px solid rgba(99,102,241,0.2)",
-                    borderRadius: "24px",
-                    boxShadow: "0 0 0 1px rgba(99,102,241,0.05), 0 32px 64px rgba(0,0,0,0.6), 0 0 80px rgba(99,102,241,0.08)",
-                    padding: "40px 36px 36px",
+                    background: "#ffffff",
+                    border: "2px solid rgba(0,0,0,0.25)",
+                    borderRadius: "32px",
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
+                    padding: "48px 40px 40px",
                 }}
             >
                 {/* Top accent line */}
                 <div
                     aria-hidden
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-2/3 rounded-b-full"
-                    style={{ background: "linear-gradient(90deg, transparent, #6366f1, #8b5cf6, transparent)" }}
+                    className="absolute top-0 left-0 right-0 h-[8px] rounded-t-full"
+                    style={{ background: "#000000" }}
                 />
 
                 {/* ── Header ── */}
@@ -241,7 +226,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         <span
                             className="text-2xl font-bold tracking-tight"
                             style={{
-                                background: "linear-gradient(135deg, #e0e7ff, #c4b5fd)",
+                                background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                             }}
@@ -251,10 +236,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
                     </Link>
 
                     <div className="mt-1">
-                        <h1 className="text-xl font-semibold text-white">
+                        <h1 className="text-xl font-semibold text-slate-900">
                             {isSignIn ? "Welcome back" : "Create your account"}
                         </h1>
-                        <p className="mt-1 text-sm" style={{ color: "#6870a6" }}>
+                        <p className="mt-1 text-sm" style={{ color: "#334155" }}>
                             {isSignIn
                                 ? "Sign in to continue your interview prep"
                                 : "Start practicing with AI-powered mock interviews"}
@@ -271,7 +256,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#6870a6" }}>
+                                        <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#334155" }}>
                                             Full Name
                                         </FormLabel>
                                         <FormControl>
@@ -293,7 +278,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#6870a6" }}>
+                                    <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#334155" }}>
                                         Email Address
                                     </FormLabel>
                                     <FormControl>
@@ -314,7 +299,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#6870a6" }}>
+                                    <FormLabel className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#334155" }}>
                                         Password
                                     </FormLabel>
                                     <FormControl>
@@ -334,18 +319,17 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="mt-2 w-full font-bold text-sm tracking-wide"
+                            className="mt-4 w-full font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
                             style={{
-                                height: 48,
-                                borderRadius: 12,
+                                height: 52,
+                                borderRadius: 16,
                                 background: isLoading
-                                    ? "rgba(99,102,241,0.5)"
-                                    : "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                                    ? "#cbd5e1"
+                                    : "#000000",
                                 border: "none",
-                                color: "#fff",
+                                color: "#ffffff",
                                 cursor: isLoading ? "not-allowed" : "pointer",
-                                boxShadow: isLoading ? "none" : "0 0 24px rgba(99,102,241,0.35)",
-                                transition: "all 0.2s ease",
+                                boxShadow: isLoading ? "none" : "0 10px 30px rgba(0,0,0,0.15)",
                             }}
                         >
                             {isLoading ? (
@@ -365,9 +349,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
                 {/* ── Divider ── */}
                 <div className="my-6 flex items-center gap-3">
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-                    <span className="text-xs" style={{ color: "#4f557d" }}>or</span>
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.1)" }} />
+                    <span className="text-xs" style={{ color: "#1e293b" }}>or</span>
+                    <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.1)" }} />
                 </div>
 
                 {/* ── Social Sign-In ── */}
@@ -377,15 +361,14 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         type="button"
                         onClick={handleGoogleSignIn}
                         disabled={isGoogleLoading || isGithubLoading || isLoading}
-                        className="flex-1 font-semibold text-sm tracking-wide"
+                        className="flex-1 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-slate-50"
                         style={{
                             height: 48,
-                            borderRadius: 12,
-                            background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(99,102,241,0.15)",
-                            color: "#e0e7ff",
+                            borderRadius: 14,
+                            background: "#ffffff",
+                            border: "2px solid rgba(0,0,0,0.15)",
+                            color: "#0f172a",
                             cursor: (isGoogleLoading || isGithubLoading || isLoading) ? "not-allowed" : "pointer",
-                            transition: "all 0.2s ease",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -415,15 +398,14 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         type="button"
                         onClick={handleGithubSignIn}
                         disabled={isGoogleLoading || isGithubLoading || isLoading}
-                        className="flex-1 font-semibold text-sm tracking-wide"
+                        className="flex-1 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-slate-50"
                         style={{
                             height: 48,
-                            borderRadius: 12,
-                            background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(99,102,241,0.15)",
-                            color: "#e0e7ff",
+                            borderRadius: 14,
+                            background: "#ffffff",
+                            border: "2px solid rgba(0,0,0,0.15)",
+                            color: "#0f172a",
                             cursor: (isGoogleLoading || isGithubLoading || isLoading) ? "not-allowed" : "pointer",
-                            transition: "all 0.2s ease",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -447,12 +429,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 </div>
 
                 {/* ── Footer ── */}
-                <p className="text-center text-sm" style={{ color: "#6870a6" }}>
+                <p className="text-center text-sm" style={{ color: "#334155" }}>
                     {isSignIn ? "Don't have an account? " : "Already have an account? "}
                     <Link
                         href={isSignIn ? "/sign-up" : "/sign-in"}
-                        className="font-semibold transition-colors hover:text-indigo-300"
-                        style={{ color: "#818cf8" }}
+                        className="font-semibold transition-colors text-indigo-600 hover:text-indigo-800"
                     >
                         {isSignIn ? "Sign up free" : "Sign in"}
                     </Link>
@@ -464,11 +445,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         <span
                             key={badge}
                             className="flex items-center gap-1 text-[10px] font-medium"
-                            style={{ color: "#4f557d" }}
+                            style={{ color: "#1e293b" }}
                         >
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                <circle cx="5" cy="5" r="4" stroke="#4f557d" strokeWidth="1" />
-                                <path d="M3 5l1.5 1.5L7 3.5" stroke="#6366f1" strokeWidth="1.2" strokeLinecap="round" />
+                                <circle cx="5" cy="5" r="4" stroke="#1e293b" strokeWidth="1" />
+                                <path d="M3 5l1.5 1.5L7 3.5" stroke="#4f46e5" strokeWidth="1.2" strokeLinecap="round" />
                             </svg>
                             {badge}
                         </span>
@@ -480,15 +461,15 @@ const AuthForm = ({ type }: { type: FormType }) => {
 };
 
 const inputStyle: React.CSSProperties = {
-    height: 48,
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(99,102,241,0.15)",
-    color: "#e0e7ff",
+    height: 52,
+    borderRadius: 14,
+    background: "#ffffff",
+    border: "2px solid rgba(0,0,0,0.15)",
+    color: "#0f172a",
     fontSize: 14,
     paddingLeft: 16,
     paddingRight: 16,
-    transition: "border-color 0.2s, box-shadow 0.2s",
+    transition: "all 0.2s ease",
 };
 
 export default AuthForm;

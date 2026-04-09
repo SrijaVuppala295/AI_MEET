@@ -55,8 +55,8 @@ export default function Header({ user }: HeaderProps) {
             className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
             style={{
                 background: scrolled
-                    ? "rgba(8,9,13,0.92)"
-                    : "rgba(8,9,13,0.5)",
+                    ? "rgba(255,255,255,0.92)"
+                    : "rgba(255,255,255,0.5)",
                 borderBottom: scrolled ? "1px solid rgba(99,102,241,0.15)" : "1px solid transparent",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
@@ -80,7 +80,7 @@ export default function Header({ user }: HeaderProps) {
                         <span
                             className="text-xl font-bold tracking-tight"
                             style={{
-                                background: "linear-gradient(135deg, #e0e7ff, #c4b5fd)",
+                                background: "linear-gradient(135deg, #4f46e5, #9333ea)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                             }}
@@ -93,15 +93,15 @@ export default function Header({ user }: HeaderProps) {
                     <div className="hidden md:flex items-center gap-1">
                         <button
                             onClick={() => scrollTo("about")}
-                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                            style={{ color: "#6870a6" }}
+                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-slate-900"
+                            style={{ color: "#334155" }}
                         >
                             About
                         </button>
                         <button
                             onClick={() => scrollTo("contact")}
-                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                            style={{ color: "#6870a6" }}
+                            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-slate-900"
+                            style={{ color: "#334155" }}
                         >
                             Contact
                         </button>
@@ -110,8 +110,8 @@ export default function Header({ user }: HeaderProps) {
                         <div className="relative" ref={dropRef}>
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-white"
-                                style={{ color: "#6870a6" }}
+                                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:text-slate-900"
+                                style={{ color: "#334155" }}
                             >
                                 Features
                                 <svg
@@ -127,9 +127,9 @@ export default function Header({ user }: HeaderProps) {
                                 <div
                                     className="absolute top-full mt-2 right-0 w-52 rounded-2xl overflow-hidden animate-fadeIn"
                                     style={{
-                                        background: "linear-gradient(145deg, rgba(36,38,51,0.98), rgba(8,9,13,0.99))",
-                                        border: "1px solid rgba(99,102,241,0.2)",
-                                        boxShadow: "0 20px 40px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.08)",
+                                        background: "#ffffff",
+                                        border: "1px solid rgba(0,0,0,0.1)",
+                                        boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
                                     }}
                                 >
                                     {APP_LINKS.map((item) => (
@@ -137,8 +137,8 @@ export default function Header({ user }: HeaderProps) {
                                             key={item.href}
                                             href={user ? item.href : "/sign-in"}
                                             onClick={() => setDropdownOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5"
-                                            style={{ color: "#d6e0ff" }}
+                                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-black/5"
+                                            style={{ color: "#0f172a" }}
                                         >
                                             <span
                                                 className="w-1.5 h-1.5 rounded-full"
@@ -169,7 +169,7 @@ export default function Header({ user }: HeaderProps) {
                                                 width: 38,
                                                 height: 38,
                                                 background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                                color: "#fff",
+                                                color: "#ffffff",
                                                 boxShadow: "0 0 16px rgba(99,102,241,0.3)",
                                             }}
                                             title="View Profile"
@@ -180,8 +180,8 @@ export default function Header({ user }: HeaderProps) {
                                 </div>
                                 <Link href="/sign-out">
                                     <button
-                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-white/10"
-                                        style={{ color: "#6870a6", border: "1px solid rgba(255,255,255,0.08)" }}
+                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-black/5"
+                                        style={{ color: "#334155", border: "1px solid rgba(0,0,0,0.03)" }}
                                     >
                                         Logout
                                     </button>
@@ -191,8 +191,8 @@ export default function Header({ user }: HeaderProps) {
                             <>
                                 <Link href="/sign-in">
                                     <button
-                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-white/5"
-                                        style={{ color: "#d6e0ff" }}
+                                        className="px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:bg-black/5"
+                                        style={{ color: "#0f172a" }}
                                     >
                                         Sign In
                                     </button>
@@ -202,7 +202,7 @@ export default function Header({ user }: HeaderProps) {
                                         className="px-5 py-2 text-sm font-bold rounded-xl transition-all hover:opacity-90"
                                         style={{
                                             background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                                            color: "#fff",
+                                            color: "#ffffff",
                                             boxShadow: "0 0 20px rgba(99,102,241,0.3)",
                                         }}
                                     >
@@ -216,7 +216,7 @@ export default function Header({ user }: HeaderProps) {
                     {/* Mobile hamburger */}
                     <button
                         className="md:hidden p-2 rounded-lg"
-                        style={{ color: "#6870a6" }}
+                        style={{ color: "#334155" }}
                         onClick={() => setMobileOpen(!mobileOpen)}
                     >
                         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -242,7 +242,7 @@ export default function Header({ user }: HeaderProps) {
                                 key={item}
                                 onClick={() => scrollTo(item.toLowerCase())}
                                 className="block w-full text-left px-4 py-3 text-sm font-medium"
-                                style={{ color: "#6870a6" }}
+                                style={{ color: "#334155" }}
                             >
                                 {item}
                             </button>
@@ -253,7 +253,7 @@ export default function Header({ user }: HeaderProps) {
                                 key={item.href}
                                 href={user ? item.href : "/sign-in"}
                                 className="block px-4 py-3 text-sm font-medium"
-                                style={{ color: "#d6e0ff" }}
+                                style={{ color: "#0f172a" }}
                                 onClick={() => setMobileOpen(false)}
                             >
                                 {item.label}
@@ -267,12 +267,12 @@ export default function Header({ user }: HeaderProps) {
                         ) : (
                             <div className="flex gap-3 px-4 pt-2">
                                 <Link href="/sign-in" className="flex-1">
-                                    <button className="w-full py-2.5 text-sm font-semibold rounded-xl border" style={{ color: "#d6e0ff", borderColor: "rgba(99,102,241,0.3)" }}>
+                                    <button className="w-full py-2.5 text-sm font-semibold rounded-xl border" style={{ color: "#1e293b", borderColor: "rgba(99,102,241,0.3)" }}>
                                         Sign In
                                     </button>
                                 </Link>
                                 <Link href="/sign-up" className="flex-1">
-                                    <button className="w-full py-2.5 text-sm font-bold rounded-xl" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff" }}>
+                                    <button className="w-full py-2.5 text-sm font-bold rounded-xl text-white" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
                                         Get Started
                                     </button>
                                 </Link>

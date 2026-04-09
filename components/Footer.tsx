@@ -18,12 +18,12 @@ export default function Footer() {
                     >
                         <Image src="/logo.svg" alt="logo" width={16} height={16} />
                     </div>
-                    <span className="font-bold text-white">AI MEET</span>
+                    <span className="font-bold text-slate-900">AI MEET</span>
                 </div>
-                <p className="text-xs text-center" style={{ color: "#4f557d" }}>
+                <p className="text-xs text-center" style={{ color: "#1e293b" }}>
                     © {new Date().getFullYear()} AI MEET. Built for the next generation of developers.
                 </p>
-                <div className="flex gap-5 text-xs" style={{ color: "#4f557d" }}>
+                <div className="flex gap-5 text-xs" style={{ color: "#1e293b" }}>
                     <LinkNext href="/privacy" className="hover:text-indigo-400 transition-colors">Privacy</LinkNext>
                     <LinkNext href="/terms" className="hover:text-indigo-400 transition-colors">Terms</LinkNext>
                     <LinkNext href="/sign-in" className="hover:text-indigo-400 transition-colors">Login</LinkNext>
