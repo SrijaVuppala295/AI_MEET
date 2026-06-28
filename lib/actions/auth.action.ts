@@ -2,6 +2,7 @@
 
 import { auth, adminDb } from "@/firebase/admin";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { SignUpParams, SignInParams, User } from "@/types";
 
 // Session duration (1 week)
@@ -118,6 +119,7 @@ export async function signOut() {
 
 // Get current user from session cookie
 export async function getCurrentUser(): Promise<User | null> {
+    await connection();
     const cookieStore = await cookies();
 
     const sessionCookie = cookieStore.get("session")?.value;
