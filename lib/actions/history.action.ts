@@ -1,7 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "./auth.action";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function getUserHistory() {
     try {

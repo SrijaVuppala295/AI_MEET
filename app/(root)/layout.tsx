@@ -1,10 +1,12 @@
+export const dynamic = "force-dynamic";
+
 import { ReactNode } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getCurrentUser } from '@/lib/actions/auth.action';
+import { getCurrentUser } from '@/lib/auth';
 import AIChatbot from "@/components/AIChatbot";
 
-export const dynamic = "force-dynamic";
+
 
 const RootLayout = async ({ children }: { children: ReactNode }) => {
     const user = await getCurrentUser();

@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
     try {

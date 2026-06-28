@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 
 const EMPTY = { avgScore: 0, bestScore: 0, latestScore: 0, totalQuestions: 0, totalSessions: 0, improvement: 0, streak: 0, topicsCovered: 0 };
 

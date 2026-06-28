@@ -1,6 +1,8 @@
+export const dynamic = "force-dynamic";
 import { getUserHistory } from "@/lib/actions/history.action";
 import ProfileUI from "@/components/ProfileUI";
 import { redirect } from "next/navigation";
+
 
 export default async function ProfilePage() {
     const result = await getUserHistory();

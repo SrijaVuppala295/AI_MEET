@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import { getNextApiKeyServer } from "@/lib/key-rotator";
 

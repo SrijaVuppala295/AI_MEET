@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 
 /* Generate a short feedback string using AI */
 async function generateFeedback(topic: string, score: number): Promise<string> {

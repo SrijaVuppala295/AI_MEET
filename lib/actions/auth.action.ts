@@ -3,6 +3,7 @@
 import { auth, adminDb } from "@/firebase/admin";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
 import { SignUpParams, SignInParams, User } from "@/types";
 
 // Session duration (1 week)
@@ -118,44 +119,8 @@ export async function signOut() {
 }
 
 // Get current user from session cookie
-export async function getCurrentUser(): Promise<User | null> {
-    await connection();
-    const cookieStore = await cookies();
-
-    const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) {
-        console.log("[auth] No session cookie found");
-        return null;
-    }
-
-    try {
-        const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
-        console.log("[auth] Session verified for uid:", decodedClaims.uid);
-
-        const userRecord = await adminDb
-            .collection("users")
-            .doc(decodedClaims.uid)
-            .get();
-
-        if (!userRecord.exists) {
-            console.log("[auth] User document not found in Firestore for uid:", decodedClaims.uid);
-            return null;
-        }
-
-        return {
-            ...userRecord.data(),
-            id: userRecord.id,
-        } as User;
-    } catch (error) {
-        // If the session cookie is invalid (e.g. wrong project id, expired), clear it.
-        console.log("[auth] Invalid session cookie detected. Clearing it...", error);
-        cookieStore.delete("session");
-        return null;
-    }
-}
 
 // Check if user is authenticated
 export async function isAuthenticated() {
-    const user = await getCurrentUser();
-    return !!user;
+    return !!(await getCurrentUser());
 }

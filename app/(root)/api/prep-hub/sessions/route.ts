@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, adminDb } from "@/firebase/admin";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 
 /** GET /api/prep-hub/sessions  — returns all past sessions for the signed-in user */
 export async function GET(_req: NextRequest) {

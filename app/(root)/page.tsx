@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 import HomePage from "@/components/HomePage";
 
 export const dynamic = "force-dynamic";

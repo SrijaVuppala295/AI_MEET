@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin";
 import { getNextApiKeyServer } from "@/lib/key-rotator";
-import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getCurrentUser } from "@/lib/auth";
 import type { TranscriptMessage, InterviewFeedback } from "@/types/interview";
 
 /* ─── AI provider ─── */
