@@ -15,9 +15,7 @@ function initFirebaseAdmin() {
                 privateKey: process.env.FIREBASE_PRIVATE_KEY
                     ? process.env.FIREBASE_PRIVATE_KEY
                         .replace(/\\n/g, "\n")
-                        .replace(/\"/g, "")
-                        .replace(/\'/g, "")
-                        .replace(/\\/g, "")
+                        .replace(/^["']|["']$/g, "")
                         .trim()
                     : undefined,
             }),
