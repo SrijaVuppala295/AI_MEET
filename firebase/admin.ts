@@ -13,11 +13,10 @@ function initFirebaseAdmin() {
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
                 privateKey: process.env.FIREBASE_PRIVATE_KEY
-                    ? process.env.FIREBASE_PRIVATE_KEY
-                        .replace(/\\n/g, "\n") // Replace escaped \n with real newlines
-                        .replace(/^["']|["']$/g, "") // Strip wrapping quotes
-                        .replace(/\\/g, "") // Strip any residual backslashes
-                        .trim()
+                    ? (process.env.FIREBASE_PRIVATE_KEY.startsWith("---")
+                        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n").replace(/^["']|["']$/g, "").trim()
+                        : Buffer.from(process.env.FIREBASE_PRIVATE_KEY, "base64").toString("utf8")
+                      )
                     : undefined,
             }),
         });
