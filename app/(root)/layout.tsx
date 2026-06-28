@@ -4,6 +4,8 @@ import Footer from '@/components/Footer';
 import { getCurrentUser } from '@/lib/actions/auth.action';
 import AIChatbot from "@/components/AIChatbot";
 
+export const dynamic = "force-dynamic";
+
 const RootLayout = async ({ children }: { children: ReactNode }) => {
     const user = await getCurrentUser();
 

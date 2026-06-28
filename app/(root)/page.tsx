@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import HomePage from "@/components/HomePage";
 
+export const dynamic = "force-dynamic";
+
 const Page = async () => {
     const user = await getCurrentUser();
     return <HomePage user={user} />;
